@@ -1,0 +1,14 @@
+services:
+  front:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    container_name: front
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"

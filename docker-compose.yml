@@ -1,0 +1,9 @@
+services:
+  front:
+    build: .
+    container_name: front
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
