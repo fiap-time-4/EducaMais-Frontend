@@ -1,9 +1,10 @@
 // src/app/admin/create/page.tsx
 'use client'; // Obrigatório para usar hooks (useState, useRouter)
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PostForm from '@/app/components/PostForm';
+import { authClient, sessionUser } from '@/app/services/authClient';
 
 // PLACEHOLDER: Importar o useAuth quando o Pacote 3 o criar
 // import { useAuth } from '@/contexts/AuthContext';
@@ -11,11 +12,16 @@ import PostForm from '@/app/components/PostForm';
 export default function CreatePostPage() {
   const router = useRouter(); // Hook do Next.js para fazer redirecionamento
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: session, isPending } = authClient.useSession();
+  const [sessionUser, setSessionUser] = useState<sessionUser>({ id: '', email: '', name: '' });
 
-  // PLACEHOLDER: Pegar o usuário logado do Pacote 3
-  // const { user, token } = useAuth();
-  // const autorId = user?.id;
-  const MOCK_AUTOR_ID = 1; // << Use este MOCK por enquanto para testar
+  useEffect(() => {
+    if (!isPending && !session?.user || !session) {
+      router.push('/admin/signin'); // Redireciona para a página de login se não estiver autenticado
+    } else {
+      setSessionUser(session.user);
+    }
+  }, [isPending, router, session]);
 
   /**
    * Esta é a função que será passada para o PostForm.
@@ -24,18 +30,15 @@ export default function CreatePostPage() {
   const handleCreatePost = async (data: { titulo: string; conteudo: string }) => {
     setIsSubmitting(true);
 
-    if (!MOCK_AUTOR_ID) {
-      setIsSubmitting(false); // Para o loading
-      // O try/catch do PostForm vai pegar este erro e exibi-lo
-      throw new Error('Você não está autenticado. Faça o login para criar um post.');
-    }
-
     const postData = {
       titulo: data.titulo,
       conteudo: data.conteudo,
-      autorId: MOCK_AUTOR_ID, // Aqui usaremos o ID do usuário logado
+      // não é mais necessario passar o autorId no post basta estar logado.
+      // autorId: sessionUser.id, // Aqui usaremos o ID do usuário logado
     };
 
+
+    // Lembrar de usar o apiClient ( axios )
     // PLACEHOLDER: Mover esta lógica para um 'postService' (Pacote 2)
     const response = await fetch('http://localhost:3333/posts', { // Use a URL do seu backend
       method: 'POST',

@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { postService } from '@/app/services/postService';
+import { authClient } from '@/app/services/authClient';
 
 // --- Definição dos Tipos ---
 interface Author {
@@ -27,6 +28,8 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session, isPending } = authClient.useSession();
+  const sessionUser = session?.user;
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -76,6 +79,8 @@ export default function DashboardPage() {
   return (
     <div>
       <h1>Dashboard Administrativo</h1>
+      {sessionUser && (<p>Bem-vindo, {sessionUser.name}!</p>
+      )}
       
       <Link href="/admin/create">
         Criar Novo Post

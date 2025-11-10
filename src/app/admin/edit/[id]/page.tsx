@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import PostForm from "@/app/components/PostForm/index";
 import { useRouter, useParams } from "next/navigation";
 import { postService } from "@/app/services/postService";
+import { authClient, sessionUser } from "@/app/services/authClient";
 
 // Tipagem básica para os dados do post que esperamos
 interface PostData {
@@ -21,6 +22,16 @@ export default function EditPostPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { data: session, isPending } = authClient.useSession();
+  const [sessionUser, setSessionUser] = useState<sessionUser>({ id: '', email: '', name: '' });
+  
+  useEffect(() => {
+      if (!isPending && !session?.user || !session) {
+        router.push('/admin/signin'); // Redireciona para a página de login se não estiver autenticado
+      } else {
+        setSessionUser(session.user);
+      }
+    }, [isPending, router, session]);
 
   // Efeito para buscar os dados do post quando a página carrega
   useEffect(() => {
