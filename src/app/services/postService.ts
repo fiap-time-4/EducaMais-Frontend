@@ -2,18 +2,18 @@
 
 import apiClient from './apiClient';
 // MUDANÇA 1: Importar o Axios para checagem de tipo de erro
-import axios from 'axios'; 
+import axios from 'axios';
 
 // Definição de Tipos ---
 // (Idealmente, Pacote 1 ou 2 move isso para 'src/types/index.ts')
 
-interface Author {
+export interface Author {
   id: number;
   email: string;
   name: string | null;
 }
 
-interface Post {
+export interface Post {
   id: number;
   titulo: string;
   conteudo: string;
@@ -23,7 +23,7 @@ interface Post {
   autor: Author;
 }
 
-interface Pagination {
+export interface Pagination {
   page: number;
   limit: number;
   total: number;
@@ -31,19 +31,19 @@ interface Pagination {
 }
 
 // Tipos dos formulários
-interface CreatePostData {
+export interface CreatePostData {
   titulo: string;
   conteudo: string;
   autorId: number;
 }
 
-interface UpdatePostData {
+export interface UpdatePostData {
   titulo?: string;
   conteudo?: string;
 }
 
 // Tipo de retorno para listas paginadas
-type PaginatedPosts = { data: Post[]; pagination: Pagination };
+export type PaginatedPosts = { data: Post[]; pagination: Pagination };
 
 // ==============================================================
 // FUNÇÕES DO PACOTE 4 (ADMIN / SEU PACOTE)
@@ -161,7 +161,7 @@ const searchPosts = async (term: string, page = 1, limit = 10): Promise<Paginate
 
 
 // Exporta todas as funções
-export const postService = {
+export {
   // Suas funções (Pacote 4)
   createPost,
   updatePost,

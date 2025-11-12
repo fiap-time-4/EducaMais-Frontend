@@ -23,15 +23,19 @@ export default function EditPostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session, isPending } = authClient.useSession();
-  const [sessionUser, setSessionUser] = useState<sessionUser>({ id: '', email: '', name: '' });
-  
+  const [sessionUser, setSessionUser] = useState<sessionUser>({
+    id: "",
+    email: "",
+    name: "",
+  });
+
   useEffect(() => {
-      if (!isPending && !session?.user || !session) {
-        router.push('/admin/signin'); // Redireciona para a página de login se não estiver autenticado
-      } else {
-        setSessionUser(session.user);
-      }
-    }, [isPending, router, session]);
+    if ((!isPending && !session?.user) || !session) {
+      router.push("/admin/signin"); // Redireciona para a página de login se não estiver autenticado
+    } else {
+      setSessionUser(session.user);
+    }
+  }, [isPending, router, session]);
 
   // Efeito para buscar os dados do post quando a página carrega
   useEffect(() => {
