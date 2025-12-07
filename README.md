@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EducaMais-Frontend
 
-## Getting Started
+Repositório oficial do front-end do projeto EducaMais, uma plataforma de blogging para docentes e alunos, construída com Next.js (App Router), integração com Better Auth e consumo da API do backend via Axios.
 
-First, run the development server:
+Backend do projeto: https://github.com/fiap-time-4/EducaMais-Backend
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Arquitetura e Tecnologias
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Páginas (App Router): rotas em `src/app` com server/client components.
+- Componentes (UI): ShadCN UI + Tailwind.
+- Serviços: consumo de API (Axios) e autenticação (Better Auth).
+- Estilos: Tailwind CSS e fontes.
+- Docker: desenvolvimento e produção.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Tecnologias:
+- Next.js 14 + TypeScript
+- Tailwind CSS + ShadCN UI
+- Axios
+- Better Auth
+- Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Pré-requisitos
 
-## Learn More
+- Node.js 20+
+- Docker Desktop (opcional)
+- Git
 
-To learn more about Next.js, take a look at the following resources:
+## Configuração de Ambiente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Crie `.env` baseado em `.env.example`:
+- `NEXT_PUBLIC_API_URL=http://localhost:3333`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Para cookies com credenciais, o backend deve configurar CORS com `origin` explícito e `credentials: true`.
 
-## Deploy on Vercel
+## Instalação e Execução
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Desenvolvimento: `npm install` e `npm run dev` (http://localhost:3000)
+- Build: `npm run build`
+- Produção local: `npm start`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Docker
+
+- Dev (hot reload): `docker compose -f docker-compose.local.yml up --build -d`
+- Prod: `docker compose up --build -d`
+
+## Integração com Backend
+
+Endpoints:
+- GET `/posts?page=&limit=`
+- GET `/posts/:id`
+- POST `/posts` (autenticado)
+- PUT `/posts/:id` (autenticado)
+- DELETE `/posts/:id` (autenticado)
+
+Tipos:
+- `Author.id`: string
+- `Post.autorId`: string
+
+## Estrutura
+
+- `src/app`: páginas, layouts e estilos globais
+- `src/app/components`: UI e formulários
+- `src/app/services`: `apiClient`, `authClient`, `postService`
+- `public`: assets
+- `.github/workflows/deploy.yml`: pipeline de deploy
+
+## CORS e Cookies
+
+- Backend: `origin` explícito (ex.: `http://localhost:3000`) e `credentials: true`
+- Frontend: Axios com `withCredentials: true`
+- Better Auth: `trustedOrigins` configurados no backend
+
+## Deploy
+
+Workflow usa `appleboy/ssh-action`:
+- Secrets: `SERVER_HOST`, `SERVER_USER`, `SERVER_SSH_KEY`, `SERVER_PATH`, `ENV_PROD_B64`
+- Faz pull, grava `.env` e sobe containers via `docker compose`.
+
+## Scripts
+
+- `npm run dev`, `npm run build`, `npm start`
+- `docker compose -f docker-compose.local.yml up --build -d`
+- `docker compose up --build -d`
