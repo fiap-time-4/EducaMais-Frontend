@@ -1,98 +1,120 @@
 "use client"
 
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { Input } from "@/app/components/ui/input";
-import { Label } from "@/app/components/ui/label";
+import Button from "@/app/components/button";
+import Input from "@/app/components/input";
+import Label from "@/app/components/label";
+import Toast, {ToastVariant} from "@/app/components/toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/app/services/authClient";
+import { z } from "zod";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);
+
+  const signInSchema = z.object({
+    email: z.string({ message: "O e-mail é obrigatório" }).email("Informe um e-mail válido"),
+    password: z.string({ message: "A senha é obrigatória" }).min(6, "A senha deve ter pelo menos 6 caracteres"),
+  });
+
+  const showToast = (message: string, variant: ToastVariant = "info") => {
+    setToast({ message, variant });
+  };
+
+  const handleSubmit = async () => {
+    const result = signInSchema.safeParse({ email, password });
+    if (!result.success) {
+      const firstError =
+        result.error.issues[0]?.message || "Verifique os dados informados.";
+      showToast(firstError, "warning");
+      return;
+    }
+
+    try {
+      await authClient.signIn.email(
+        {
+          email,
+          password,
+          callbackURL: "/admin/dashboard",
+        },
+        {
+          onRequest: () => setLoading(true),
+          onResponse: () => setLoading(false),
+          onError: () => setLoading(false),
+        }
+      );
+      showToast("Login realizado com sucesso!", "success");
+    } catch (err) {
+      setLoading(false);
+      showToast("Falha ao autenticar. Verifique suas credenciais.", "alert");
+    }
+  };
   
 
   return (
-    <Card className="max-w-md">
-      <CardHeader>
-        <CardTitle className="text-lg md:text-xl">Sign In</CardTitle>
-        <CardDescription className="text-xs md:text-sm">
-          Enter your email below to login to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-                value={email}
-              />
-            </div>
+        <div className="w-screen h-auto flex flex-col justify-center items-center mt-20 mb-20">
+          {toast && (
+            <Toast
+              message={toast.message}
+              variant={toast.variant}
+              onClose={() => setToast(null)}
+            />
+          )}
+          <div className="w-2xl flex flex-col gap-6 p-10 border rounded-lg shadow-lg">
+              <div className="flex flex-col gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="email@exemplo.com"
+                    required
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                    }}
+                    value={email}
+                  />
+                </div>
 
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Senha</Label>
+                    
+                  </div>
+
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="*********"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+
                 
+
+              
+
+              <Button
+                  type="submit"
+                  disabled={loading}
+                  onClick={handleSubmit}
+                >
+                  {loading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <p> Login </p>
+                  )}
+                  </Button>
+
+          
               </div>
-
-              <Input
-                id="password"
-                type="password"
-                placeholder="password"
-                autoComplete="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            
-
-          
-
-          <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-              onClick={async () => {
-                await authClient.signIn.email(
-                {
-                    email,
-                    password,
-                    callbackURL: "/admin/dashboard"
-                },
-                {
-                  onRequest: (ctx) => {
-                    setLoading(true);
-                  },
-                  onResponse: (ctx) => {
-                    setLoading(false);
-                  },
-                },
-                );
-              }}
-            >
-              {loading ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <p> Login </p>
-              )}
-              </Button>
-
-          
-
           
         </div>
-      </CardContent>
-      
-    </Card>
+
   );
 }

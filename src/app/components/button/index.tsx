@@ -6,6 +6,7 @@ interface ButtonProps {
   onClick?: () => void;
   variant?: 'primary' | 'secondary';
   type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
 const ButtonContainer = styled.button<{ variant?: 'primary' | 'secondary' }>`
@@ -25,7 +26,7 @@ const ButtonContainer = styled.button<{ variant?: 'primary' | 'secondary' }>`
     background-color: ${props => 
       props.variant === 'secondary' 
         ? props.theme.colors.secondaryDark 
-        : '#2563eb'};
+        : props.theme.colors.primaryDark};
   }
   
   &:active {
@@ -37,10 +38,11 @@ const Button: React.FC<ButtonProps> = ({
   children, 
   onClick, 
   variant = 'primary',
-  type = 'button' 
+  type = 'button',
+  disabled = false,
 }) => {
   return (
-    <ButtonContainer variant={variant} onClick={onClick} type={type} className="text-base font-medium">
+    <ButtonContainer variant={variant} onClick={onClick} type={type} disabled={disabled} className="text-base font-medium">
       {children}
     </ButtonContainer>
   );
