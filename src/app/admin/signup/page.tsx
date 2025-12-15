@@ -1,193 +1,158 @@
 "use client";
 
-import { Button } from "@/app/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/app/components/ui/card";
-import { Input } from "@/app/components/ui/input";
-import { Label } from "@/app/components/ui/label";
+import Button from "@/app/components/button";
+import Input from "@/app/components/input";
+import Label from "@/app/components/label";
+import Toast, {ToastVariant} from "@/app/components/toast";
 import { useState } from "react";
-import Image from "next/image";
 import { Loader2, X } from "lucide-react";
 import { authClient } from "@/app/services/authClient";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
 
 export default function SignUp() {
-	const [firstName, setFirstName] = useState("");
-	const [lastName, setLastName] = useState("");
+	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [passwordConfirmation, setPasswordConfirmation] = useState("");
-	const [image, setImage] = useState<File | null>(null);
-	const [imagePreview, setImagePreview] = useState<string | null>(null);
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
+	const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			setImage(file);
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				setImagePreview(reader.result as string);
-			};
-			reader.readAsDataURL(file);
-		}
-	};
+	const signUpSchema = z.object({
+		name: z.string({ message: "O nome é obrigatório" }).min(3, "O nome deve ter pelo menos 3 caracteres"),
+    email: z.string({ message: "O e-mail é obrigatório" }).email("Informe um e-mail válido"),
+    password: z.string({ message: "A senha é obrigatória" }).min(6, "A senha deve ter pelo menos 6 caracteres"),
+		passwordConfirmation: z.string({ message: "A confirmação de senha é obrigatória" }),
+  }).refine((data) => data.password === data.passwordConfirmation, {
+		message: "As senhas não coincidem",
+	});
+
+  const showToast = (message: string, variant: ToastVariant = "info") => {
+    setToast({ message, variant });
+  };
+
+  const handleSubmit = async () => {
+    const result = signUpSchema.safeParse({ name, email, password, passwordConfirmation });
+    if (!result.success) {
+      const firstError =
+        result.error.issues[0]?.message || "Verifique os dados informados.";
+      showToast(firstError, "warning");
+      return;
+    }
+
+    try {
+      await authClient.signUp.email(
+        {
+					name,
+          email,
+          password,
+          callbackURL: "/admin/dashboard",
+        },
+        {
+          onRequest: () => setLoading(true),
+          onResponse: () => setLoading(false),
+          onError: () => setLoading(false),
+        }
+      );
+      showToast("Cadastro realizado com sucesso!", "success");
+    } catch (err) {
+      setLoading(false);
+      showToast("Falha ao cadastrar. Verifique suas informações.", "alert");
+    }
+  };
 
 	return (
-		<Card className="z-50 rounded-md rounded-t-none max-w-md">
-			<CardHeader>
-				<CardTitle className="text-lg md:text-xl">Sign Up</CardTitle>
-				<CardDescription className="text-xs md:text-sm">
-					Enter your information to create an account
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<div className="grid gap-4">
-					<div className="grid grid-cols-2 gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="first-name">First name</Label>
-							<Input
-								id="first-name"
-								placeholder="Max"
-								required
-								onChange={(e) => {
-									setFirstName(e.target.value);
-								}}
-								value={firstName}
-							/>
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="last-name">Last name</Label>
-							<Input
-								id="last-name"
-								placeholder="Robinson"
-								required
-								onChange={(e) => {
-									setLastName(e.target.value);
-								}}
-								value={lastName}
-							/>
-						</div>
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="email">Email</Label>
-						<Input
-							id="email"
-							type="email"
-							placeholder="m@example.com"
-							required
-							onChange={(e) => {
-								setEmail(e.target.value);
-							}}
-							value={email}
-						/>
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="password">Password</Label>
-						<Input
-							id="password"
-							type="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							autoComplete="new-password"
-							placeholder="Password"
-						/>
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="password">Confirm Password</Label>
-						<Input
-							id="password_confirmation"
-							type="password"
-							value={passwordConfirmation}
-							onChange={(e) => setPasswordConfirmation(e.target.value)}
-							autoComplete="new-password"
-							placeholder="Confirm Password"
-						/>
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="image">Profile Image (optional)</Label>
-						<div className="flex items-end gap-4">
-							{imagePreview && (
-								<div className="relative w-16 h-16 rounded-sm overflow-hidden">
-									<Image
-										src={imagePreview}
-										alt="Profile preview"
-										layout="fill"
-										objectFit="cover"
-									/>
-								</div>
-							)}
-							<div className="flex items-center gap-2 w-full">
-								<Input
-									id="image"
-									type="file"
-									accept="image/*"
-									onChange={handleImageChange}
-									className="w-full"
-								/>
-								{imagePreview && (
-									<X
-										className="cursor-pointer"
-										onClick={() => {
-											setImage(null);
-											setImagePreview(null);
-										}}
-									/>
-								)}
-							</div>
-						</div>
-					</div>
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={loading}
-						onClick={async () => {
-							await authClient.signUp.email({
-								email,
-								password,
-								name: `${firstName} ${lastName}`,
-								image: image ? await convertImageToBase64(image) : "",
-								callbackURL: "/admin/dashboard",
-								fetchOptions: {
-									onResponse: () => {
-										setLoading(false);
-									},
-									onRequest: () => {
-										setLoading(true);
-									},
-									onError: (ctx) => {
-									},
-									onSuccess: async () => {
-										router.push("/admin/dashboard");
-									},
-								},
-							});
-						}}
-					>
-						{loading ? (
-							<Loader2 size={16} className="animate-spin" />
-						) : (
-							"Create an account"
-						)}
-					</Button>
-				</div>
-			</CardContent>
-          
-		</Card>
-	);
-}
+        <div className="w-screen h-auto flex flex-col justify-center items-center mt-20 mb-20">
+          {toast && (
+            <Toast
+              message={toast.message}
+              variant={toast.variant}
+              onClose={() => setToast(null)}
+            />
+          )}
+          <div className="w-2xl flex flex-col gap-6 p-10 border rounded-lg shadow-lg">
+						<div className="flex flex-col gap-2">
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="João Silva"
+                    required
+                    onChange={(e) => {
+                      setName(e.target.value);
+                    }}
+                    value={name}
+                  />
+                </div>
+              <div className="flex flex-col gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="email@exemplo.com"
+                    required
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                    }}
+                    value={email}
+                  />
+                </div>
 
-async function convertImageToBase64(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onloadend = () => resolve(reader.result as string);
-		reader.onerror = reject;
-		reader.readAsDataURL(file);
-	});
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Senha</Label>
+                    
+                  </div>
+
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="*********"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+
+								<div className="flex flex-col gap-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="passwordConfirmation">Confirmar Senha</Label>
+                    
+                  </div>
+
+                  <Input
+                    id="passwordConfirmation"
+                    name="passwordConfirmation"
+                    type="password"
+                    placeholder="*********"
+                    value={passwordConfirmation}
+                    onChange={(e) => setPasswordConfirmation(e.target.value)}
+                  />
+                </div>
+
+                
+
+              
+
+              <Button
+                  type="submit"
+                  disabled={loading}
+                  onClick={handleSubmit}
+                >
+                  {loading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <p> Cadastrar </p>
+                  )}
+                  </Button>
+
+          
+              </div>
+          
+        </div>
+
+  );
 }

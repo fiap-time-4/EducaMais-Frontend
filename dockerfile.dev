@@ -1,6 +1,15 @@
-FROM node:18
+FROM node:20
 WORKDIR /app
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV CHOKIDAR_USEPOLLING=1
+ENV WATCHPACK_POLLING=true
+ENV WDS_SOCKET_PORT=3000
+ENV TURBOPACK=1
+
 COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
-CMD ["npm", "run", "dev"]
+
+EXPOSE 3000
+CMD ["npm", "run", "dev", "--", "-p", "3000", "-H", "0.0.0.0"]
