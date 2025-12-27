@@ -63,8 +63,8 @@ export const theme = {
   colors: {
     primary: '#62A59D', 
     primaryDark: '#3B7E76', 
-    secondary: '#10b981',
-    secondaryDark: '#059669',
+    secondary: '#f2994a',
+    secondaryDark: '#ca7124',
     info: '#3b82f6',
     success: '#10b981',
     warning: '#f59e0b',

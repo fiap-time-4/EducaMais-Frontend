@@ -1,13 +1,12 @@
 // src/app/admin/edit/[id]/page.tsx
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import PostForm from "@/app/components/PostForm/index";
-import { useRouter, useParams } from "next/navigation";
-import { postService } from "@/app/services/postService";
-import { authClient, sessionUser } from "@/app/services/authClient";
+import React, { useState, useEffect } from 'react';
+import PostForm from '@/app/components/PostForm/index';
+import { useRouter, useParams } from 'next/navigation';
+import { postService } from '@/app/services/postService';
+import { authClient } from '@/app/services/authClient';
 
-// Tipagem básica para os dados do post que esperamos
 interface PostData {
   titulo: string;
   conteudo: string;
@@ -22,22 +21,18 @@ export default function EditPostPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Autenticação
   const { data: session, isPending } = authClient.useSession();
-  const [sessionUser, setSessionUser] = useState<sessionUser>({
-    id: "",
-    email: "",
-    name: "",
-  });
 
+  // Proteção da rota
   useEffect(() => {
-    if ((!isPending && !session?.user) || !session) {
-      router.push("/admin/signin"); // Redireciona para a página de login se não estiver autenticado
-    } else {
-      setSessionUser(session.user);
+    if (!isPending && !session) {
+      router.push('/admin/signin');
     }
-  }, [isPending, router, session]);
+  }, [isPending, session, router]);
 
-  // Efeito para buscar os dados do post quando a página carrega
+  // Busca os dados do post ao carregar
   useEffect(() => {
     if (!postId) return;
 
@@ -47,7 +42,6 @@ export default function EditPostPage() {
 
       try {
         const post = await postService.getPostById(Number(postId));
-
         setInitialData({
           titulo: post.titulo,
           conteudo: post.conteudo,
@@ -56,7 +50,7 @@ export default function EditPostPage() {
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError("Erro ao carregar dados do post.");
+          setError('Erro ao carregar dados do post.');
         }
       } finally {
         setIsLoading(false);
@@ -66,38 +60,48 @@ export default function EditPostPage() {
     fetchPostData();
   }, [postId]);
 
-  const handleUpdatePost = async (formData: {
-    titulo: string;
-    conteudo: string;
-  }) => {
+  // Função chamada ao salvar
+  const handleUpdatePost = async (formData: { titulo: string; conteudo: string }) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
       await postService.updatePost(Number(postId), formData);
-
-      alert("Post atualizado com sucesso!");
-      router.push("/admin/dashboard");
+      alert('Post atualizado com sucesso!');
+      router.push('/admin/dashboard');
     } catch (err: unknown) {
+      setIsSubmitting(false);
+      
+      // Lógica igual ao create: lança o erro para ser tratado ou exibido
       if (err instanceof Error) {
-        setError(err.message);
+        throw new Error(err.message);
+        // Se preferir exibir o erro no topo da página ao invés de lançar, use: setError(err.message);
       } else {
-        setError("Ocorreu um erro inesperado.");
+        throw new Error('Ocorreu um erro inesperado ao atualizar.');
       }
-      setIsSubmitting(false); // Permite que o usuário tente novamente
     }
   };
 
-  // Renderização condicional
-  if (isLoading) return <div>Carregando dados do post...</div>;
-  if (error && !initialData)
-    return <div style={{ color: "red" }}>Erro: {error}</div>;
-  if (!initialData) return <div>Post não encontrado.</div>;
+  // Renderização de Loading e Erros de Carregamento
+  if (isPending || isLoading) return <div className="p-6">Carregando...</div>;
+  
+  if (error && !initialData) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 text-red-600">
+        Erro ao carregar post: {error}
+      </div>
+    );
+  }
+
+  if (!initialData) return <div className="p-6">Post não encontrado.</div>;
 
   return (
-    <div>
-      <h1>Editar Postagem</h1>
-      {error && <p style={{ color: "red" }}>Erro: {error}</p>}
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">Editar Postagem</h1>
+      <p className="text-gray-600 mb-6">Atualize as informações do artigo abaixo.</p>
+
+      {/* Se houver erro de envio (submit), mostramos aqui também se necessário */}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <PostForm
         initialData={initialData}

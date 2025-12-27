@@ -1,81 +1,70 @@
-// src/components/PostForm.tsx
-"use client";
-import React, { useState, useEffect } from "react";
+'use client';
+
+import React, { useState } from 'react';
+import MarkdownEditor from '../MarkdownEditor';
 
 interface PostFormProps {
-  initialData?: { titulo: string; conteudo: string }; // Para edição
-  onSubmit: (data: { titulo: string; conteudo: string }) => Promise<void>;
+  onSubmit: (data: { titulo: string; conteudo: string }) => void;
   isSubmitting: boolean;
+  initialData?: { titulo: string; conteudo: string }; // Opcional, para quando for usar na Edição
 }
 
-export default function PostForm({
-  initialData,
-  onSubmit,
-  isSubmitting,
-}: PostFormProps) {
-  const [titulo, setTitulo] = useState("");
-  const [conteudo, setConteudo] = useState("");
-  const [error, setError] = useState<string | null>(null);
+export default function PostForm({ onSubmit, isSubmitting, initialData }: PostFormProps) {
+  const [titulo, setTitulo] = useState(initialData?.titulo || '');
+  const [conteudo, setConteudo] = useState(initialData?.conteudo || '');
 
-  // Preenche o form se for edição
-  useEffect(() => {
-    if (initialData) {
-      setTitulo(initialData.titulo || "");
-      setConteudo(initialData.conteudo || "");
-    }
-  }, [initialData]);
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError(null);
-
-    // Validação Simples
-    if (!titulo.trim()) {
-      setError("O título é obrigatório.");
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!titulo || !conteudo) {
+      alert("Preencha todos os campos");
       return;
     }
-    if (!conteudo.trim() || conteudo.trim().length < 100) {
-      setError("O conteúdo é obrigatório e deve ter pelo menos 100 caracteres.");
-      return;
-    }
-
-    try {
-      await onSubmit({ titulo: titulo.trim(), conteudo: conteudo.trim() });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Falha ao salvar o post.");
-      }
-    }
+    onSubmit({ titulo, conteudo });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {error && <p style={{ color: "red" }}>Erro: {error}</p>}
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded shadow-sm border">
+      
+      {/* Campo Título */}
       <div>
-        <label htmlFor="titulo">Título:</label>
+        <label htmlFor="titulo" className="block text-sm font-medium text-gray-700 mb-1">
+          Título do Post
+        </label>
         <input
           id="titulo"
           type="text"
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+          placeholder="Ex: Como aprender React em 2025"
           disabled={isSubmitting}
         />
       </div>
+
+      {/* Campo Conteúdo (EDITOR DE MARKDOWN) */}
       <div>
-        <label htmlFor="conteudo">Conteúdo:</label>
-        <textarea
-          id="conteudo"
-          value={conteudo}
-          onChange={(e) => setConteudo(e.target.value)}
-          disabled={isSubmitting}
-          rows={10}
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Conteúdo
+        </label>
+        {/* Aqui entra nosso editor visual */}
+        <MarkdownEditor 
+          value={conteudo} 
+          onChange={setConteudo} 
         />
       </div>
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Salvando..." : "Salvar Post"}
-      </button>
+
+      {/* Botão Salvar */}
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`px-6 py-2 rounded text-white font-medium transition-colors
+            ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}
+          `}
+        >
+          {isSubmitting ? 'Salvando...' : 'Publicar Post'}
+        </button>
+      </div>
     </form>
   );
 }

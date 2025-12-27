@@ -1,71 +1,60 @@
-// src/app/admin/create/page.tsx
-'use client'; // Obrigatório para usar hooks (useState, useRouter)
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import PostForm from '@/app/components/PostForm';
-import { authClient, sessionUser } from '@/app/services/authClient';
-
-// PLACEHOLDER: Importar o useAuth quando o Pacote 3 o criar
-// import { useAuth } from '@/contexts/AuthContext';
+import PostForm from '@/app/components/PostForm'; 
+import { authClient } from '@/app/services/authClient';
+import { postService } from '@/app/services/postService'; // <-- Importamos o serviço
 
 export default function CreatePostPage() {
-  const router = useRouter(); // Hook do Next.js para fazer redirecionamento
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Autenticação
   const { data: session, isPending } = authClient.useSession();
-  const [sessionUser, setSessionUser] = useState<sessionUser>({ id: '', email: '', name: '' });
 
+  // Proteção da rota (Redundância de segurança com o Middleware)
   useEffect(() => {
-    if (!isPending && !session?.user || !session) {
-      router.push('/admin/signin'); // Redireciona para a página de login se não estiver autenticado
-    } else {
-      setSessionUser(session.user);
+    if (!isPending && !session) {
+      router.push('/admin/signin');
     }
-  }, [isPending, router, session]);
+  }, [isPending, session, router]);
 
   /**
-   * Esta é a função que será passada para o PostForm.
-   * Ela contém a lógica específica de *criação*.
+   * Função que o PostForm vai chamar quando o usuário clicar em "Salvar"
    */
   const handleCreatePost = async (data: { titulo: string; conteudo: string }) => {
     setIsSubmitting(true);
 
-    const postData = {
-      titulo: data.titulo,
-      conteudo: data.conteudo,
-      // não é mais necessario passar o autorId no post basta estar logado.
-      // autorId: sessionUser.id, // Aqui usaremos o ID do usuário logado
-    };
+    try {
+      // MUDANÇA: Usamos o serviço centralizado.
+      // Não precisamos passar ID, nem token manual, o apiClient resolve tudo.
+      await postService.createPost({
+        titulo: data.titulo,
+        conteudo: data.conteudo,
+      });
 
-
-    // Lembrar de usar o apiClient ( axios )
-    // PLACEHOLDER: Mover esta lógica para um 'postService' (Pacote 2)
-    const response = await fetch('http://localhost:3333/posts', { // Use a URL do seu backend
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Futuramente: 'Authorization': `Bearer ${token}` (do Pacote 3)
-      },
-      body: JSON.stringify(postData),
-    });
-
-    if (!response.ok) {
-      setIsSubmitting(false); // Para o loading
-      const errorData = await response.json();
-      // O try/catch do PostForm vai pegar este erro e exibi-lo
-      throw new Error(errorData.message || 'Falha ao criar o post.');
+      alert('Post criado com sucesso!');
+      router.push('/admin/dashboard');
+    } catch (error: unknown) {
+      setIsSubmitting(false);
+      
+      // Repassamos o erro para o componente PostForm exibir na tela
+      if (error instanceof Error) {
+        throw new Error(error.message); 
+      } else {
+        throw new Error('Erro desconhecido ao criar post.');
+      }
     }
-
-    // Se deu tudo certo
-    alert('Post criado com sucesso!');
-    router.push('/admin/dashboard'); // Redireciona para o dashboard
-    // Não precisamos do setIsSubmitting(false) aqui, pois a página será desmontada
   };
 
+  // Se estiver carregando a sessão, mostra um loading simples
+  if (isPending) return <div>Carregando...</div>;
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Criar Novo Post</h1>
-      <p>Preencha os campos abaixo para criar uma nova postagem.</p>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">Criar Novo Post</h1>
+      <p className="text-gray-600 mb-6">Preencha os campos abaixo para publicar um novo artigo.</p>
       
       <PostForm 
         onSubmit={handleCreatePost} 

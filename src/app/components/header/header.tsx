@@ -2,6 +2,8 @@
 import React from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/app/services/authClient';
 
 const HeaderContainer = styled.header`
   display: flex;
@@ -36,10 +38,11 @@ const HeaderContent = styled.div`
   }
 `;
 
-const Logo = styled(Link)`
+const Logo = styled.span`
   color: #000000;
   text-decoration: none;
   flex-shrink: 0;
+  cursor: pointer;
 `;
 
 const Nav = styled.nav`
@@ -57,15 +60,7 @@ const Nav = styled.nav`
   }
 `;
 
-const NavLink = styled(Link)`
-  color: ${props => props.theme.colors.text.secondary};
-  text-decoration: none;
-  &:hover {
-    color: ${props => props.theme.colors.primary};
-  }
-`;
-
-const NavButton = styled.button`
+const NavButton = styled.span`
   background: #F2994A;
   color: ${props => props.theme.colors.text.inverse};
   padding: 0.625rem 1.25rem;
@@ -75,6 +70,9 @@ const NavButton = styled.button`
   transition: background-color 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  display: inline-flex; 
+  align-items: center;
+  justify-content: center;
   
   @media (max-width: 768px) {
     padding: 0.625rem 1.25rem;
@@ -89,7 +87,19 @@ const NavButton = styled.button`
   }
 `;
 
-const NewPostButton = styled(Link)`
+// Criei um botão secundário para o "Sair" para não ficar igual ao principal,
+// mas você pode usar o NavButton se preferir tudo laranja.
+const LogoutButton = styled(NavButton)`
+  background: transparent;
+  color: #F2994A;
+  border: 1px solid #F2994A;
+
+  &:hover {
+    background: #FFF5EE;
+  }
+`;
+
+const NewPostButton = styled.span`
   background: ${props => props.theme.colors.primary};
   color: ${props => props.theme.colors.text.inverse};
   padding: 0.625rem 1.25rem;
@@ -126,14 +136,56 @@ const NewPostButton = styled(Link)`
 `;
 
 const Header: React.FC = () => {
+  // Hook do better-auth para pegar a sessão
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    router.push('/'); // Redireciona para home após sair
+  };
+
   return (
     <>
       <HeaderContainer>
         <HeaderContent>
-          <Logo href="/" className="text-2xl font-bold">EducaMais</Logo>
+          <Link href="/">
+            <Logo className="text-2xl font-bold">EducaMais</Logo>
+          </Link>
+
           <Nav>
-            <NewPostButton href="/nova-postagem" className="text-base font-medium md:text-[0.9375rem] sm:text-sm">+ Nova Postagem</NewPostButton>
-            <NavButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">Entrar</NavButton>
+            <Link href="/admin/create">
+              <NewPostButton className="text-base font-medium md:text-[0.9375rem] sm:text-sm">
+                + Nova Postagem
+              </NewPostButton>
+            </Link>
+
+            {/* LÓGICA CONDICIONAL AQUI */}
+            {session ? (
+              // Se TEM sessão (logado):
+              <>
+                <Link href="/admin/dashboard">
+                  <NavButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
+                    Painel Administrativo
+                  </NavButton>
+                </Link>
+                
+                <LogoutButton 
+                  onClick={handleLogout}
+                  className="font-medium text-base md:text-[0.9375rem] sm:text-sm"
+                >
+                  Sair
+                </LogoutButton>
+              </>
+            ) : (
+              // Se NÃO tem sessão (deslogado):
+              <Link href="/admin/signin">
+                <NavButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
+                  Entrar
+                </NavButton>
+              </Link>
+            )}
+
           </Nav>
         </HeaderContent>
       </HeaderContainer>
