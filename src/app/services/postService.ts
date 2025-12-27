@@ -34,7 +34,6 @@ export interface Pagination {
 export interface CreatePostData {
   titulo: string;
   conteudo: string;
-  autorId: number;
 }
 
 export interface UpdatePostData {
@@ -57,8 +56,7 @@ const createPost = async (postData: CreatePostData): Promise<Post> => {
   try {
     const response = await apiClient.post<{ data: Post }>('/posts', postData);
     return response.data.data;
-  } catch (error: unknown) { // <-- MUDANÇA 3: unknown
-    // MUDANÇA 4: Tratamento de erro robusto para Axios
+  } catch (error: unknown) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(error.response.data.message || 'Erro ao criar o post');
     }

@@ -1,18 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-
-// --- Importações de Componentes ---
-
 import SearchBar from "./components/SearchBar";
 import PostCard from "./components/PostCard";
-
-// --- Importações de Componentes (Pacote 1) ---
-// Importe o Header/Footer do seu projeto
-// import Header from '../../components/Header';
-// import Footer from '../../components/Footer';
-
-// --- Importações da Lógica de Dados ---
 import { Post, postService } from "./services/postService";
 
 // ----------------------------------------------------

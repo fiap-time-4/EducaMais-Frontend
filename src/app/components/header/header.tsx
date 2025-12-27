@@ -2,6 +2,8 @@
 import React from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/app/services/authClient';
 
 const HeaderContainer = styled.header`
   display: flex;
@@ -36,8 +38,6 @@ const HeaderContent = styled.div`
   }
 `;
 
-// MUDANÇA 1: De styled(Link) para styled.span
-// Como ele vai ficar DENTRO de um Link, ele deve ser apenas um elemento visual
 const Logo = styled.span`
   color: #000000;
   text-decoration: none;
@@ -60,8 +60,6 @@ const Nav = styled.nav`
   }
 `;
 
-// MUDANÇA 2: De styled.button para styled.span
-// Botão dentro de Link é HTML inválido. Mudamos para span mantendo o estilo visual.
 const NavButton = styled.span`
   background: #F2994A;
   color: ${props => props.theme.colors.text.inverse};
@@ -72,7 +70,7 @@ const NavButton = styled.span`
   transition: background-color 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
-  display: inline-flex; // Garante alinhamento correto
+  display: inline-flex; 
   align-items: center;
   justify-content: center;
   
@@ -89,7 +87,18 @@ const NavButton = styled.span`
   }
 `;
 
-// MUDANÇA 3: De styled(Link) para styled.span, pelo mesmo motivo dos outros
+// Criei um botão secundário para o "Sair" para não ficar igual ao principal,
+// mas você pode usar o NavButton se preferir tudo laranja.
+const LogoutButton = styled(NavButton)`
+  background: transparent;
+  color: #F2994A;
+  border: 1px solid #F2994A;
+
+  &:hover {
+    background: #FFF5EE;
+  }
+`;
+
 const NewPostButton = styled.span`
   background: ${props => props.theme.colors.primary};
   color: ${props => props.theme.colors.text.inverse};
@@ -127,6 +136,15 @@ const NewPostButton = styled.span`
 `;
 
 const Header: React.FC = () => {
+  // Hook do better-auth para pegar a sessão
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    router.push('/'); // Redireciona para home após sair
+  };
+
   return (
     <>
       <HeaderContainer>
@@ -142,11 +160,32 @@ const Header: React.FC = () => {
               </NewPostButton>
             </Link>
 
-            <Link href="/admin/signin">
-              <NavButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
-                Entrar
-              </NavButton>
-            </Link>
+            {/* LÓGICA CONDICIONAL AQUI */}
+            {session ? (
+              // Se TEM sessão (logado):
+              <>
+                <Link href="/admin/dashboard">
+                  <NavButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
+                    Painel Administrativo
+                  </NavButton>
+                </Link>
+                
+                <LogoutButton 
+                  onClick={handleLogout}
+                  className="font-medium text-base md:text-[0.9375rem] sm:text-sm"
+                >
+                  Sair
+                </LogoutButton>
+              </>
+            ) : (
+              // Se NÃO tem sessão (deslogado):
+              <Link href="/admin/signin">
+                <NavButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
+                  Entrar
+                </NavButton>
+              </Link>
+            )}
+
           </Nav>
         </HeaderContent>
       </HeaderContainer>

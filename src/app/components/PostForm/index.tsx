@@ -1,118 +1,69 @@
-// src/app/components/PostForm/index.tsx
+'use client';
 
-"use client";
-import React, { useState, useEffect } from "react";
-import Button from "@/app/components/button";
-import Input from "@/app/components/input";
-import Label from "../label";
-import { Textarea } from "../textarea/Textarea";
+import React, { useState } from 'react';
+import MarkdownEditor from '../MarkdownEditor';
 
 interface PostFormProps {
-  initialData?: { titulo: string; conteudo: string };
-  onSubmit: (data: { titulo: string; conteudo: string }) => Promise<void>;
+  onSubmit: (data: { titulo: string; conteudo: string }) => void;
   isSubmitting: boolean;
+  initialData?: { titulo: string; conteudo: string }; // Opcional, para quando for usar na Edição
 }
 
-export default function PostForm({
-  initialData,
-  onSubmit,
-  isSubmitting,
-}: PostFormProps) {
-  const [titulo, setTitulo] = useState("");
-  const [conteudo, setConteudo] = useState("");
-  const [error, setError] = useState<string | null>(null);
+export default function PostForm({ onSubmit, isSubmitting, initialData }: PostFormProps) {
+  const [titulo, setTitulo] = useState(initialData?.titulo || '');
+  const [conteudo, setConteudo] = useState(initialData?.conteudo || '');
 
-  useEffect(() => {
-    if (initialData) {
-      setTitulo(initialData.titulo || "");
-      setConteudo(initialData.conteudo || "");
-    }
-  }, [initialData]);
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError(null);
-
-    if (!titulo.trim()) {
-      setError("O título é obrigatório.");
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!titulo || !conteudo) {
+      alert("Preencha todos os campos");
       return;
     }
-    if (!conteudo.trim() || conteudo.trim().length < 100) {
-      setError(
-        "O conteúdo é obrigatório e deve ter pelo menos 100 caracteres."
-      );
-      return;
-    }
-
-    try {
-      await onSubmit({ titulo: titulo.trim(), conteudo: conteudo.trim() });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Falha ao salvar o post.");
-      }
-    }
+    onSubmit({ titulo, conteudo });
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.5rem",
-        maxWidth: "600px",
-        margin: "0 auto",
-      }}
-    >
-      {error && (
-        <div
-          style={{
-            padding: "0.75rem",
-            backgroundColor: "#fee2e2",
-            color: "#991b1b",
-            borderRadius: "0.375rem",
-            fontSize: "0.875rem",
-          }}
-        >
-          Erro: {error}
-        </div>
-      )}
-
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded shadow-sm border">
+      
       {/* Campo Título */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <Label htmlFor="titulo">Título da Postagem</Label>
-        <Input
+      <div>
+        <label htmlFor="titulo" className="block text-sm font-medium text-gray-700 mb-1">
+          Título do Post
+        </label>
+        <input
           id="titulo"
-          name="titulo"
           type="text"
-          placeholder="Digite um título chamativo..."
           value={titulo}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setTitulo(e.target.value)
-          }
+          onChange={(e) => setTitulo(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+          placeholder="Ex: Como aprender React em 2025"
           disabled={isSubmitting}
         />
       </div>
 
-      {/* Campo Conteúdo */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <Label htmlFor="conteudo">Conteúdo da Postagem</Label>
-        <Textarea
-          id="conteudo"
-          name="conteudo"
-          placeholder="Escreva o conteúdo do post..."
-          value={conteudo}
-          onChange={(e) => setConteudo(e.target.value)}
-          disabled={isSubmitting}
+      {/* Campo Conteúdo (EDITOR DE MARKDOWN) */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Conteúdo
+        </label>
+        {/* Aqui entra nosso editor visual */}
+        <MarkdownEditor 
+          value={conteudo} 
+          onChange={setConteudo} 
         />
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Salvando..." : "Salvar Post"}
-        </Button>
+      {/* Botão Salvar */}
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`px-6 py-2 rounded text-white font-medium transition-colors
+            ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}
+          `}
+        >
+          {isSubmitting ? 'Salvando...' : 'Publicar Post'}
+        </button>
       </div>
     </form>
   );
