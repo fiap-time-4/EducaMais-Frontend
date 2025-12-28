@@ -1,5 +1,7 @@
 import React from "react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Post } from "../services/postService";
 
 interface PostCardProps {
@@ -16,12 +18,16 @@ const PostCard: React.FC<PostCardProps> = ({
   const postUrl = `/posts/${post.id}`;
 
   const getPreview = (text: string) => {
-    const words = text.split(/\s+/); // Divide por qualquer espaço em branco
-    if (words.length <= 10) return text;
-    
+    // 1. Remove símbolos de Markdown comuns para o preview não ficar "sujo"
+    const cleanText = text
+      .replace(/[#*`_]/g, "") // Remove #, *, `, _
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1"); // Transforma [link](url) em apenas "link"
+
+    const words = cleanText.split(/\s+/);
+    if (words.length <= 10) return cleanText;
+
     return words.slice(0, 10).join(" ") + "...";
   };
-
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       {/* Lado Esquerdo: Conteúdo do Post */}
@@ -34,8 +40,10 @@ const PostCard: React.FC<PostCardProps> = ({
 
         {/* Preview do conteúdo (limitado a 2 linhas para manter o card limpo) */}
         {!isAdmin && (
-          <p className="text-gray-600 mt-2 line-clamp-2 text-sm">
-            {getPreview(post.conteudo)}
+          <p className="prose prose-stone prose-indigo lg:prose-lg max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {getPreview(post.conteudo)}
+            </ReactMarkdown>
           </p>
         )}
 

@@ -3,6 +3,8 @@
 import React, { useState, useEffect, use } from "react";
 import Head from "next/head";
 import Link from "next/link"; // Adicionado para permitir voltar
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // --- Importações da Lógica de Dados ---
 import { postService, Post } from "../../services/postService";
@@ -15,20 +17,7 @@ export default function PostPage({
   const { id } = use(params);
 
   // Mantendo seu Mock para testes locais
-  const [post, setPost] = useState<Post | null>({
-    id: 1,
-    titulo: "Introdução ao TypeScript",
-    conteudo:
-      "TypeScript é um superconjunto de JavaScript que adiciona tipagem estática e dinâmica...\n\nO TypeScript permite que você escreva um código mais robusto e fácil de manter, capturando erros durante o desenvolvimento em vez de em tempo de execução.",
-    autorId: 101,
-    createdAt: "2023-10-01T10:00:00Z",
-    atualizacao: "2023-10-05T14:30:00Z",
-    autor: {
-      id: 101,
-      email: "ana.silva@email.com",
-      name: "Ana Silva",
-    },
-  });
+  const [post, setPost] = useState<Post | null>();
 
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -37,11 +26,10 @@ export default function PostPage({
     if (id && typeof id === "string") {
       const postId = parseInt(id, 10);
       const fetchPost = async () => {
-        // Simulando o carregamento conforme seu código original
         setHasError(false);
         try {
-          // const data = await postService.getPostById(postId);
-          // setPost(data);
+          const data = await postService.getPostById(postId);
+          setPost(data);
         } catch (error) {
           console.error(`Falha ao carregar o post ${postId}:`, error);
           setHasError(true);
@@ -131,10 +119,12 @@ export default function PostPage({
         </header>
 
         {/* Corpo do Post */}
-        <article className="prose prose-indigo max-w-none">
-          <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-wrap">
+        <article className="prose prose-stone prose-indigo lg:prose-lg max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+          >
             {post.conteudo}
-          </p>
+          </ReactMarkdown>
         </article>
 
         {/* Rodapé do Post (Opcional) */}
