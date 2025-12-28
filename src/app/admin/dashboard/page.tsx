@@ -24,63 +24,7 @@ interface Post {
 // --- FIM DOS TIPOS ---
 
 export default function DashboardPage() {
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 1,
-      titulo: "Introdução ao TypeScript",
-      conteudo:
-        "TypeScript é um superconjunto de JavaScript que adiciona tipagem estática...",
-      autorId: 101,
-      createdAt: "2023-10-01T10:00:00Z",
-      atualizacao: "2023-10-05T14:30:00Z",
-      autor: {
-        id: 101,
-        email: "ana.silva@email.com",
-        name: "Ana Silva",
-      },
-    },
-    {
-      id: 2,
-      titulo: "Dicas de React Hooks",
-      conteudo:
-        "Hooks como useEffect e useState revolucionaram a forma como escrevemos componentes...",
-      autorId: 102,
-      createdAt: "2023-11-15T09:20:00Z",
-      atualizacao: "2023-11-15T09:20:00Z",
-      autor: {
-        id: 102,
-        email: "bruno.oliveira@email.com",
-        name: "Bruno Oliveira",
-      },
-    },
-    {
-      id: 3,
-      titulo: "O que há de novo no Next.js",
-      conteudo:
-        "A App Router trouxe muitas mudanças na forma de lidar com rotas e Server Components...",
-      autorId: 101, // Reutilizando a mesma autora
-      createdAt: "2023-12-01T16:45:00Z",
-      atualizacao: "2023-12-02T10:00:00Z",
-      autor: {
-        id: 101,
-        email: "ana.silva@email.com",
-        name: "Ana Silva",
-      },
-    },
-    {
-      id: 4,
-      titulo: "Post de Autor Anônimo",
-      conteudo: "Este é um exemplo de post onde o nome do autor é nulo.",
-      autorId: 103,
-      createdAt: "2024-01-10T11:00:00Z",
-      atualizacao: "2024-01-10T11:00:00Z",
-      autor: {
-        id: 103,
-        email: "anonimo@provedor.com",
-        name: null, // Testando a propriedade name: string | null
-      },
-    },
-  ]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,8 +40,8 @@ export default function DashboardPage() {
     const fetchPosts = async () => {
       setIsLoadingPosts(true);
       try {
-        // const result = await postService.getAllPosts();
-        // setPosts(result.data || []);
+        const result = await postService.getAllPosts();
+        setPosts(result.data || []);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
