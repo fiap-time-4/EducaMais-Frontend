@@ -10,7 +10,9 @@
 
 Repositório oficial do front-end do projeto EducaMais, uma plataforma colaborativa de educação voltada para a troca de conhecimentos entre docentes e alunos, construída com Next.js (App Router), integração com Better Auth e consumo da API do backend via Axios.
 
-[Acesse o Repositório do Backend](https://github.com/fiap-time-4/EducaMais-Backend)
+[Acesse aqui o Repositório do Backend](https://github.com/fiap-time-4/EducaMais-Backend)
+
+[Acesse aqui o Vídeo de Apresentação](https://www.youtube.com/watch?v=-S3uohGK5SA)
 
 ## Arquitetura
 
