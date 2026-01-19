@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Post } from "../services/postService";
+import { Post } from "../types";
 
 interface PostCardProps {
   post: Post;

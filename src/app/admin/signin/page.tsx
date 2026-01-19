@@ -1,6 +1,6 @@
 "use client"
 
-import Button from "@/app/components/button";
+import Button from "@/app/components/buttons";
 import Input from "@/app/components/input";
 import Label from "@/app/components/label";
 import Toast, { ToastVariant } from "@/app/components/toast";

@@ -1,81 +1,105 @@
-import apiClient from "./apiClient";
-import axios from "axios";
-import { User, CreateUserDTO, UpdateUserDTO, PaginatedResponse } from '../types';
+// src/app/services/userService.ts
 
-export const userService = {
-  // Busca todos e filtra pelo cargo
-  getAllByRole: async (role: "TEACHER" | "STUDENT", page = 1) => {
-    try {
-      // Usamos apiClient direto. Ele já sabe a URL base e já manda cookies/tokens
-      const response = await apiClient.get<PaginatedResponse<User>>('/users', {
-        params: { page, limit: 100 }
-      });
-      
-      const allUsers = response.data.data;
-      
-      // Filtro no Front (igual antes)
-      const filteredUsers = allUsers.filter((user) => user.role === role);
+import apiClient from './apiClient';
+import axios from 'axios';
+// Ajuste o caminho dos tipos conforme sua estrutura (geralmente @/app/types ou ../types)
+import { User, CreateUserDTO, UpdateUserDTO, PaginatedResponse } from '@/app/types';
 
-      return {
-        data: filteredUsers,
-        total: filteredUsers.length
-      };
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || "Erro ao buscar usuários");
-      }
-      throw new Error("Erro desconhecido ao buscar usuários");
+/**
+ * Cria um novo usuário
+ */
+const create = async (userData: CreateUserDTO): Promise<User> => {
+  try {
+    const response = await apiClient.post<{ data: User }>('/users', userData);
+    return response.data.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || 'Erro ao criar usuário');
     }
-  },
-
-  getById: async (id: string) => {
-    try {
-      const response = await apiClient.get<{ data: User }>(`/users/${id}`);
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || "Erro ao buscar usuário");
-      }
-      throw new Error("Erro desconhecido ao buscar usuário");
-    }
-  },
-
-  create: async (data: CreateUserDTO) => {
-    try {
-      // apiClient.post resolve URL e JSON.stringify automaticamente
-      const response = await apiClient.post('/users', {
-        ...data,
-        appRole: data.role
-      });
-      return response.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || "Erro ao criar usuário");
-      }
-      throw new Error("Erro desconhecido ao criar usuário");
-    }
-  },
-
-  update: async (id: string, data: UpdateUserDTO) => {
-    try {
-      const response = await apiClient.put(`/users/${id}`, data);
-      return response.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || "Erro ao atualizar usuário");
-      }
-      throw new Error("Erro desconhecido ao atualizar usuário");
-    }
-  },
-
-  delete: async (id: string) => {
-    try {
-      await apiClient.delete(`/users/${id}`);
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || "Erro ao deletar usuário");
-      }
-      throw new Error("Erro desconhecido ao deletar usuário");
-    }
+    throw new Error('Ocorreu um erro desconhecido ao criar usuário.');
   }
+};
+
+/**
+ * Atualiza um usuário existente.
+ */
+const update = async (id: string, userData: UpdateUserDTO): Promise<User> => {
+  try {
+    const response = await apiClient.put<{ data: User }>(`/users/${id}`, userData);
+    return response.data.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || 'Erro ao atualizar usuário');
+    }
+    throw new Error('Ocorreu um erro desconhecido ao atualizar usuário.');
+  }
+};
+
+/**
+ * Deleta um usuário.
+ */
+const deleteUser = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/users/${id}`);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || 'Erro ao deletar usuário');
+    }
+    throw new Error('Ocorreu um erro desconhecido ao deletar usuário.');
+  }
+};
+
+/**
+ * Busca um usuário único pelo ID.
+ */
+const getById = async (id: string): Promise<User> => {
+  try {
+    const response = await apiClient.get<{ data: User }>(`/users/${id}`);
+    return response.data.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || 'Erro ao buscar usuário');
+    }
+    throw new Error('Ocorreu um erro desconhecido ao buscar usuário.');
+  }
+};
+
+/**
+ * Busca lista de usuários por Role com paginação.
+ * Normaliza a resposta para garantir que o front receba sempre PaginatedResponse.
+ */
+const getAllByRole = async (role: string, page = 1, limit = 10): Promise<PaginatedResponse<User>> => {
+  try {
+    const response = await apiClient.get<any>('/users', {
+      params: { role, page, limit }
+    });
+
+    const backendData = response.data;
+
+    if (backendData.pagination) {
+      return backendData as PaginatedResponse<User>;
+    }
+
+    return {
+      data: backendData.data || [],
+      pagination: {
+        pages: Math.ceil((backendData.total || 0) / limit)
+      }
+    } as PaginatedResponse<User>;
+
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || 'Erro ao buscar usuários');
+    }
+    throw new Error('Ocorreu um erro desconhecido ao buscar usuários.');
+  }
+};
+
+// Exporta todas as funções
+export const userService = {
+  create,
+  update,
+  delete: deleteUser, // Mantive o alias para você poder chamar userService.delete()
+  getById,
+  getAllByRole,
 };
