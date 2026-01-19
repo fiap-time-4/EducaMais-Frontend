@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PostForm from '@/app/components/PostForm'; 
 import { authClient } from '@/app/services/authClient';
-import { postService } from '@/app/services/postService'; // <-- Importamos o serviço
+import { postService } from '@/app/services/postService';
 
 export default function CreatePostPage() {
   const router = useRouter();

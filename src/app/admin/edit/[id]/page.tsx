@@ -6,11 +6,7 @@ import PostForm from '@/app/components/PostForm/index';
 import { useRouter, useParams } from 'next/navigation';
 import { postService } from '@/app/services/postService';
 import { authClient } from '@/app/services/authClient';
-
-interface PostData {
-  titulo: string;
-  conteudo: string;
-}
+import { PostData } from '@/app/types';
 
 export default function EditPostPage() {
   const router = useRouter();

@@ -9,10 +9,3 @@ export const authClient = createAuthClient({
       
     ]
 })
-
-export interface sessionUser {
-    id: string;
-    email: string;
-    name: string;
-}
-

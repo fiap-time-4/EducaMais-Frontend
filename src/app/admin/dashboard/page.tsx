@@ -4,24 +4,7 @@ import React, { useState, useEffect } from "react";
 import PostCard from "@/app/components/PostCard";
 import { postService } from "@/app/services/postService";
 import { authClient } from "@/app/services/authClient";
-
-// --- Definição dos Tipos ---
-interface Author {
-  id: number;
-  email: string;
-  name: string | null;
-}
-
-interface Post {
-  id: number;
-  titulo: string;
-  conteudo: string;
-  autorId: number;
-  createdAt: string;
-  atualizacao: string;
-  autor: Author;
-}
-// --- FIM DOS TIPOS ---
+import { Post } from "@/app/types";
 
 export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>([]);
