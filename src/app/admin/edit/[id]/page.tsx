@@ -6,14 +6,14 @@ import PostForm from '@/app/components/PostForm/index';
 import { useRouter, useParams } from 'next/navigation';
 import { postService } from '@/app/services/postService';
 import { authClient } from '@/app/services/authClient';
-import { PostData } from '@/app/types';
+import { CreatePostData } from '@/app/types';
 
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
   const postId = params?.id as string;
 
-  const [initialData, setInitialData] = useState<PostData | null>(null);
+  const [initialData, setInitialData] = useState<CreatePostData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export default function EditPostPage() {
   useEffect(() => {
     if (!postId) return;
 
-    const fetchPostData = async () => {
+    const fetchCreatePostData = async () => {
       setIsLoading(true);
       setError(null);
 
@@ -53,7 +53,7 @@ export default function EditPostPage() {
       }
     };
 
-    fetchPostData();
+    fetchCreatePostData();
   }, [postId]);
 
   // Função chamada ao salvar

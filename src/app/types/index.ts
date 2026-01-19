@@ -22,12 +22,24 @@ export interface PaginatedResponse<T> {
 }
 
 // ==========================================
-// 2. TIPOS DE USUÁRIO (User Domain)
+// 2. TIPOS DE USUÁRIO E SESSÃO (User Domain)
 // ==========================================
 
-// Extraímos isso para não ter que digitar "ADMIN" | ... toda hora
 export type UserRole = "ADMIN" | "TEACHER" | "STUDENT";
 
+/**
+ * Tipo usado especificamente para a Sessão (Login/Auth)
+ */
+export interface SessionUser {
+    id: string;
+    email: string;
+    name: string;
+    image?: string; // Geralmente auth providers mandam imagem
+}
+
+/**
+ * Tipo usado para o Usuário completo vindo do Banco de Dados
+ */
 export interface User {
   id: string;
   name: string;
@@ -40,7 +52,7 @@ export interface CreateUserDTO {
   name: string;
   email: string;
   password: string;
-  role: "TEACHER" | "STUDENT"; // Na criação, limitamos apenas a estes
+  role: "TEACHER" | "STUDENT";
 }
 
 export interface UpdateUserDTO {
@@ -77,15 +89,4 @@ export interface CreatePostData {
 export interface UpdatePostData {
   titulo?: string;
   conteudo?: string;
-}
-
-export interface sessionUser {
-    id: string;
-    email: string;
-    name: string;
-}
-
-export interface PostData {
-  titulo: string;
-  conteudo: string;
 }

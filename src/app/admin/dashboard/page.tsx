@@ -4,25 +4,22 @@ import React, { useState, useEffect } from "react";
 import PostCard from "@/app/components/PostCard";
 import { postService } from "@/app/services/postService";
 import { authClient } from "@/app/services/authClient";
-import { Post } from "@/app/types";
+import { Post } from "@/app/types"; // Importando do local centralizado
 
 export default function DashboardPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Hook de autenticação
+  // Hook de autenticação do Better-Auth
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
   const sessionUser = session?.user;
-
-  // Debug: Veja no console do navegador (F12) o que está chegando
-  console.log("Sessão:", session);
-  console.log("Carregando Auth:", isAuthLoading);
 
   useEffect(() => {
     const fetchPosts = async () => {
       setIsLoadingPosts(true);
       try {
+        // Busca os posts (por padrão traz a página 1 com 10 itens)
         const result = await postService.getAllPosts();
         setPosts(result.data || []);
       } catch (err: unknown) {
@@ -44,6 +41,7 @@ export default function DashboardPage() {
       setError(null);
       try {
         await postService.deletePost(postId);
+        // Atualiza a lista local removendo o item excluído
         setPosts((currentPosts) =>
           currentPosts.filter((post) => post.id !== postId)
         );
@@ -58,7 +56,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Carregamento Geral (Auth ou Posts)
+  // Loading inicial (Sessão ou Dados)
   if (isAuthLoading || isLoadingPosts) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -77,18 +75,13 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Cabeçalho do Dashboard */}
+      {/* Cabeçalho */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          {/* Se o user existir, mostramos. Se não tiver nome, usamos o email */}
           {sessionUser && (
             <p className="text-gray-600 mt-1">
-              Olá,{" "}
-              <span className="font-semibold">
-                {sessionUser.name || sessionUser.email}
-              </span>
-              !
+              Olá, <span className="font-semibold">{sessionUser.name || sessionUser.email}</span>!
             </p>
           )}
         </div>
@@ -101,10 +94,10 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {posts.map((post: Post) => (
+          {posts.map((post) => (
             <PostCard
+              key={post.id}
               isAdmin
-              key={`${post.id}`}
               post={post}
               onDelete={() => handleDelete(post.id)}
             />
