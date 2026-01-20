@@ -103,20 +103,21 @@ const Header: React.FC = () => {
                         Alunos
                       </TerciaryButton>
                     </Link>
+
+                    <Link href="/admin/dashboard">
+                      <TerciaryButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
+                        Painel
+                      </TerciaryButton>
+                    </Link>
+
+                    <Link href="/admin/create">
+                      <PrimaryButton className="text-base font-medium md:text-[0.9375rem] sm:text-sm">
+                        + Nova Postagem
+                      </PrimaryButton>
+                    </Link>
                   </>
+
                 )}
-
-                <Link href="/admin/dashboard">
-                  <TerciaryButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
-                    Painel
-                  </TerciaryButton>
-                </Link>
-
-                <Link href="/admin/create">
-                  <PrimaryButton className="text-base font-medium md:text-[0.9375rem] sm:text-sm">
-                    + Nova Postagem
-                  </PrimaryButton>
-                </Link>
 
                 <SecondaryButton
                   onClick={handleLogout}
