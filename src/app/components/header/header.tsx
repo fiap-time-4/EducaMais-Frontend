@@ -69,7 +69,7 @@ const Header: React.FC = () => {
   const user = session?.user as SessionUser | undefined;
 
   // Lógica de Permissão
-  const canManage = user?.role === "ADMIN" || user?.role === "TEACHER";
+  const canManage = user?.appRole === "ADMIN" || user?.appRole === "TEACHER";
 
   const handleLogout = async () => {
     await authClient.signOut();

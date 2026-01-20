@@ -5,30 +5,37 @@ import { useRouter } from 'next/navigation';
 import PostForm from '@/app/components/PostForm'; 
 import { authClient } from '@/app/services/authClient';
 import { postService } from '@/app/services/postService';
+import { SessionUser } from '@/app/types';
 
 export default function CreatePostPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Autenticação
+   
   const { data: session, isPending } = authClient.useSession();
+  
+  const user = session?.user as SessionUser | undefined;
 
-  // Proteção da rota (Redundância de segurança com o Middleware)
+  // --- PROTEÇÃO DE ROTA CORRIGIDA ---
   useEffect(() => {
-    if (!isPending && !session) {
-      router.push('/admin/signin');
-    }
-  }, [isPending, session, router]);
+    if (!isPending) {
+      // 1. Se não estiver logado -> Manda pro Login
+      if (!user) {
+        router.push('/admin/signin');
+        return;
+      }
 
-  /**
-   * Função que o PostForm vai chamar quando o usuário clicar em "Salvar"
-   */
+      // 2. Se estiver logado, mas for ALUNO -> Manda pra Home
+      // Só ADMIN e TEACHER podem passar daqui
+      if (user.appRole !== 'ADMIN' && user.appRole !== 'TEACHER') {
+        router.push('/');
+      }
+    }
+  }, [isPending, user, router]);
+
   const handleCreatePost = async (data: { titulo: string; conteudo: string }) => {
     setIsSubmitting(true);
 
     try {
-      // MUDANÇA: Usamos o serviço centralizado.
-      // Não precisamos passar ID, nem token manual, o apiClient resolve tudo.
       await postService.createPost({
         titulo: data.titulo,
         conteudo: data.conteudo,
@@ -39,7 +46,6 @@ export default function CreatePostPage() {
     } catch (error: unknown) {
       setIsSubmitting(false);
       
-      // Repassamos o erro para o componente PostForm exibir na tela
       if (error instanceof Error) {
         throw new Error(error.message); 
       } else {
@@ -48,8 +54,11 @@ export default function CreatePostPage() {
     }
   };
 
-  // Se estiver carregando a sessão, mostra um loading simples
-  if (isPending) return <div>Carregando...</div>;
+  if (isPending) return <div className="p-6 text-center">Carregando permissões...</div>;
+
+  if (user?.appRole !== 'ADMIN' && user?.appRole !== 'TEACHER') {
+      return null;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">

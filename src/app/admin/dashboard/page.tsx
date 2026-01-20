@@ -1,35 +1,45 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation"; // <--- Faltou importar o router
 import PostCard from "@/app/components/PostCard";
 import Pagination from "@/app/components/Pagination";
 import { postService } from "@/app/services/postService";
 import { authClient } from "@/app/services/authClient";
-import { Post } from "@/app/types";
+import { Post, SessionUser } from "@/app/types"; // Importe o SessionUser para o TS não reclamar
 
 const LIMIT = 10;
 
 export default function DashboardPage() {
+  const router = useRouter(); // <--- Inicializa o router
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- 2. Estados da Paginação ---
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
-  const sessionUser = session?.user;
+  
+  // Cast para garantir que o TS reconheça o appRole
+  const sessionUser = session?.user as SessionUser | undefined;
 
-  // --- 3. Atualizamos a busca para aceitar a página ---
+  // --- 1. SEGURANÇA (O que faltava) ---
+  useEffect(() => {
+    if (!isAuthLoading) {
+        // Se não logado, OU se não for chefe (ADMIN ou TEACHER), manda pra home.
+        if (!sessionUser || (sessionUser.appRole !== "ADMIN" && sessionUser.appRole !== "TEACHER")) {
+            router.push("/");
+        }
+    }
+  }, [sessionUser, isAuthLoading, router]);
+
   const fetchPosts = useCallback(async (pageNumber: number) => {
     setIsLoadingPosts(true);
     try {
-      // Passamos a página e o limite para o service
       const result = await postService.getAllPosts(pageNumber, LIMIT);
       setPosts(result.data || []);
 
-      // Atualizamos o total de páginas
       if (result.pagination) {
         setTotalPages(result.pagination.pages);
       }
@@ -44,16 +54,17 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Effect roda quando a página muda
+  // Só busca os posts se o usuário tiver permissão real
   useEffect(() => {
-    fetchPosts(page);
-  }, [page, fetchPosts]);
+    if (!isAuthLoading && sessionUser && (sessionUser.appRole === "ADMIN" || sessionUser.appRole === "TEACHER")) {
+        fetchPosts(page);
+    }
+  }, [page, fetchPosts, isAuthLoading, sessionUser]);
 
-  // --- 4. Funções de controle ---
   const handlePrevPage = () => {
     if (page > 1) {
       setPage((p) => p - 1);
-      window.scrollTo({ top: 0, behavior: "smooth" }); // Opcional: sobe a tela
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -73,6 +84,7 @@ export default function DashboardPage() {
           currentPosts.filter((post) => post.id !== postId)
         );
         alert("Post excluído com sucesso!");
+        // Opcional: recarregar a página atual para garantir ordem
         fetchPosts(page);
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -123,14 +135,13 @@ export default function DashboardPage() {
             {posts.map((post) => (
               <PostCard
                 key={post.id}
-                isAdmin
+                isAdmin={true} // Se chegou aqui, é admin ou teacher
                 post={post}
                 onDelete={() => handleDelete(post.id)}
               />
             ))}
           </div>
 
-          {/* --- 5. Componente de Paginação --- */}
           <Pagination
             currentPage={page}
             totalPages={totalPages}
