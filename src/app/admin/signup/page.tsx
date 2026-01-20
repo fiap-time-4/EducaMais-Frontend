@@ -22,7 +22,6 @@ export default function SignUp() {
   const signUpSchema = z.object({
     name: z.string({ message: "O nome é obrigatório" }).min(3, "O nome deve ter pelo menos 3 caracteres"),
     email: z.string({ message: "O e-mail é obrigatório" }).email("Informe um e-mail válido"),
-    // Por padrão, a better-auth geralmente exige o mínimo de 8 caracteres, tentei com 6 não foi
     password: z.string({ message: "A senha é obrigatória" }).min(8, "A senha deve ter pelo menos 8 caracteres"),
     passwordConfirmation: z.string({ message: "A confirmação de senha é obrigatória" }),
   }).refine((data) => data.password === data.passwordConfirmation, {
@@ -43,7 +42,7 @@ export default function SignUp() {
       return;
     }
 
-    setLoading(true); // Inicia o loading
+    setLoading(true);
 
     // 2. Chamada para criar a conta
     const { error } = await authClient.signUp.email(
@@ -51,25 +50,20 @@ export default function SignUp() {
         name,
         email,
         password,
-        callbackURL: "/admin/dashboard", // Tenta redirecionar auto, mas garantimos manual abaixo
+        callbackURL: "/", 
       }
     );
 
-    // 3. Verificação de ERRO real da API
     if (error) {
       setLoading(false);
-      // Aqui tratamos se o email já existe ou outro erro do back
       showToast(error.message || "Erro ao criar conta.", "alert");
       return;
     }
 
-    // 4. Sucesso!
     showToast("Cadastro realizado! Redirecionando...", "success");
 
-    // Pequeno delay para o usuário ler o toast (opcional) ou vai direto
-    router.push("/admin/dashboard");
+    router.push("/");
 
-    // Nota: Não setamos loading(false) aqui para evitar que o usuário clique de novo enquanto a página muda
   };
 
   return (
@@ -114,7 +108,6 @@ export default function SignUp() {
         <div className="flex flex-col gap-2">
           <div className="flex items-center">
             <Label htmlFor="password">Senha</Label>
-
           </div>
 
           <Input
@@ -130,7 +123,6 @@ export default function SignUp() {
         <div className="flex flex-col gap-2">
           <div className="flex items-center">
             <Label htmlFor="passwordConfirmation">Confirmar Senha</Label>
-
           </div>
 
           <Input
@@ -154,11 +146,7 @@ export default function SignUp() {
             <p> Cadastrar </p>
           )}
         </Button>
-
-
       </div>
-
     </div>
-
   );
 }

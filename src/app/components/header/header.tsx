@@ -66,10 +66,9 @@ const Header: React.FC = () => {
   const { data: session } = authClient.useSession();
   const router = useRouter();
 
-  // Casting para garantir que o TS entenda o campo 'role'
   const user = session?.user as SessionUser | undefined;
 
-  // Lógica de Permissão: Quem pode ver os botões de gestão?
+  // Lógica de Permissão
   const canManage = user?.role === "ADMIN" || user?.role === "TEACHER";
 
   const handleLogout = async () => {
@@ -89,34 +88,37 @@ const Header: React.FC = () => {
             {session ? (
               // --- ÁREA LOGADA ---
               <>
-                {/* Botões de Gestão (Só aparecem se for Admin ou Professor) */}
                 {canManage && (
                   <>
-                    <Link href="/admin/teachers">
-                      <TerciaryButton className="text-base font-medium md:text-[0.9375rem] sm:text-sm">
-                        Professores
-                      </TerciaryButton>
-                    </Link>
+                    {/* CORREÇÃO: Removemos o <Link> e usamos onClick com router.push */}
+                    <TerciaryButton 
+                      onClick={() => router.push("/admin/teachers")}
+                      className="text-base font-medium md:text-[0.9375rem] sm:text-sm"
+                    >
+                      Professores
+                    </TerciaryButton>
 
-                    <Link href="/admin/students">
-                      <TerciaryButton className="text-base font-medium md:text-[0.9375rem] sm:text-sm">
-                        Alunos
-                      </TerciaryButton>
-                    </Link>
+                    <TerciaryButton 
+                      onClick={() => router.push("/admin/students")}
+                      className="text-base font-medium md:text-[0.9375rem] sm:text-sm"
+                    >
+                      Alunos
+                    </TerciaryButton>
 
-                    <Link href="/admin/dashboard">
-                      <TerciaryButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
-                        Painel
-                      </TerciaryButton>
-                    </Link>
+                    <TerciaryButton 
+                      onClick={() => router.push("/admin/dashboard")}
+                      className="font-medium text-base md:text-[0.9375rem] sm:text-sm"
+                    >
+                      Painel
+                    </TerciaryButton>
 
-                    <Link href="/admin/create">
-                      <PrimaryButton className="text-base font-medium md:text-[0.9375rem] sm:text-sm">
-                        + Nova Postagem
-                      </PrimaryButton>
-                    </Link>
+                    <PrimaryButton 
+                      onClick={() => router.push("/admin/create")}
+                      className="text-base font-medium md:text-[0.9375rem] sm:text-sm"
+                    >
+                      + Nova Postagem
+                    </PrimaryButton>
                   </>
-
                 )}
 
                 <SecondaryButton
@@ -128,11 +130,12 @@ const Header: React.FC = () => {
               </>
             ) : (
               // --- ÁREA DESLOGADA ---
-              <Link href="/admin/signin">
-                <TerciaryButton className="font-medium text-base md:text-[0.9375rem] sm:text-sm">
-                  Entrar
-                </TerciaryButton>
-              </Link>
+              <TerciaryButton 
+                onClick={() => router.push("/admin/signin")}
+                className="font-medium text-base md:text-[0.9375rem] sm:text-sm"
+              >
+                Entrar
+              </TerciaryButton>
             )}
           </Nav>
         </HeaderContent>
