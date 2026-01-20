@@ -15,8 +15,7 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);
-  
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);  
   const router = useRouter();
 
   const signInSchema = z.object({
@@ -56,14 +55,13 @@ export default function SignIn() {
       return;
     }
 
-    // 3. Verifica a sessão
+    // 3. Verifica a sessão para redirecionar corretamente
     const sessionData = await authClient.getSession();
     const user = sessionData.data?.user as any; 
 
     showToast("Login realizado! Redirecionando...", "success");
 
-    // Se for ADMIN ou TEACHER -> Vai para o Dashboard.
-    // Qualquer outra coisa (Student, user, undefined) -> Vai para a Home.
+    // Redirecionamento baseado no Cargo
     if (user?.role === "ADMIN" || user?.role === "TEACHER") {
       router.push("/admin/dashboard");
     } else {
@@ -81,6 +79,7 @@ export default function SignIn() {
         />
       )}
       <div className="w-2xl flex flex-col gap-6 p-10 border rounded-lg shadow-lg">
+        {/* Campo de Email */}
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -94,24 +93,29 @@ export default function SignIn() {
           />
         </div>
 
+        {/* Campo de Senha - Agora simplificado! */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center">
             <Label htmlFor="password">Senha</Label>
           </div>
+          
+          {/* O Input detecta 'type="password"' e adiciona o botão sozinho */}
           <Input
             id="password"
             name="password"
-            type="password"
+            type="password" 
             placeholder="*********"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
+        {/* Botão de Entrar */}
         <Button type="submit" disabled={loading} onClick={handleSubmit}>
           {loading ? <Loader2 size={16} className="animate-spin" /> : <p> Login </p>}
         </Button>
 
+        {/* Link para Cadastro */}
         <div className="flex flex-col gap-2 mt-4 text-center">
           <span className="text-sm text-gray-500">Ainda não tem conta?</span>
           <Link href="/admin/signup" className="w-full">

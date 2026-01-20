@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { authClient } from "@/app/services/authClient";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
+import Link from "next/link";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -50,7 +51,7 @@ export default function SignUp() {
         name,
         email,
         password,
-        callbackURL: "/", 
+        callbackURL: "/",
       }
     );
 
@@ -146,6 +147,13 @@ export default function SignUp() {
             <p> Cadastrar </p>
           )}
         </Button>
+
+        <div className="flex flex-col gap-2 mt-4 text-center">
+          <span className="text-sm text-gray-500">Já tem uma conta?</span>
+          <Link href="/admin/signin" className="w-full">
+            <Button variant="secondary" type="button">Fazer Login</Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
