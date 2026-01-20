@@ -2,7 +2,6 @@
 
 import apiClient from './apiClient';
 import axios from 'axios';
-// Importamos os tipos centrais
 import { Post, CreatePostData, UpdatePostData, PaginatedResponse } from '../types';
 
 /**
@@ -66,11 +65,13 @@ const getPostById = async (id: number): Promise<Post> => {
 
 /**
  * Busca a lista paginada de posts.
+ * ACEITA AGORA O FILTRO DE AUTOR (authorId)
  */
-const getAllPosts = async (page = 1, limit = 10): Promise<PaginatedResponse<Post>> => {
+const getAllPosts = async (page = 1, limit = 10, authorId?: string): Promise<PaginatedResponse<Post>> => {
   try {
     const response = await apiClient.get<PaginatedResponse<Post>>('/posts', {
-      params: { page, limit }
+      // O Axios envia automaticamente na URL: ?page=1&limit=10&authorId=...
+      params: { page, limit, authorId }
     });
     return response.data;
   } catch (error: unknown) {
@@ -83,11 +84,12 @@ const getAllPosts = async (page = 1, limit = 10): Promise<PaginatedResponse<Post
 
 /**
  * Busca posts por um termo de pesquisa.
+ * ACEITA AGORA O FILTRO DE AUTOR (authorId)
  */
-const searchPosts = async (term: string, page = 1, limit = 10): Promise<PaginatedResponse<Post>> => {
+const searchPosts = async (term: string, page = 1, limit = 10, authorId?: string): Promise<PaginatedResponse<Post>> => {
   try {
     const response = await apiClient.get<PaginatedResponse<Post>>('/posts/search', {
-      params: { search: term, page, limit }
+      params: { search: term, page, limit, authorId }
     });
     return response.data;
   } catch (error: unknown) {
@@ -97,7 +99,6 @@ const searchPosts = async (term: string, page = 1, limit = 10): Promise<Paginate
     throw new Error('Ocorreu um erro desconhecido ao buscar posts.');
   }
 };
-
 
 // Exporta todas as funções
 export const postService = {

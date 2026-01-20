@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation"; // <--- Faltou importar o router
+import { useRouter } from "next/navigation"; 
 import PostCard from "@/app/components/PostCard";
 import Pagination from "@/app/components/Pagination";
 import { postService } from "@/app/services/postService";
 import { authClient } from "@/app/services/authClient";
-import { Post, SessionUser } from "@/app/types"; // Importe o SessionUser para o TS não reclamar
+import { Post, SessionUser } from "@/app/types";
 
 const LIMIT = 10;
 
 export default function DashboardPage() {
-  const router = useRouter(); // <--- Inicializa o router
+  const router = useRouter(); 
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,44 +20,46 @@ export default function DashboardPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
-  
+
   // Cast para garantir que o TS reconheça o appRole
   const sessionUser = session?.user as SessionUser | undefined;
 
   // --- 1. SEGURANÇA (O que faltava) ---
   useEffect(() => {
     if (!isAuthLoading) {
-        // Se não logado, OU se não for chefe (ADMIN ou TEACHER), manda pra home.
-        if (!sessionUser || (sessionUser.appRole !== "ADMIN" && sessionUser.appRole !== "TEACHER")) {
-            router.push("/");
-        }
+      // Se não logado, OU se não for chefe (ADMIN ou TEACHER), manda pra home.
+      if (!sessionUser || (sessionUser.appRole !== "ADMIN" && sessionUser.appRole !== "TEACHER")) {
+        router.push("/");
+      }
     }
   }, [sessionUser, isAuthLoading, router]);
 
   const fetchPosts = useCallback(async (pageNumber: number) => {
     setIsLoadingPosts(true);
     try {
-      const result = await postService.getAllPosts(pageNumber, LIMIT);
+      // REGRA DE OURO:
+      // Se for ADMIN -> Manda undefined (vê tudo)
+      // Se for TEACHER -> Manda o ID dele (vê só os dele)
+      const authorIdFilter = sessionUser?.appRole === "ADMIN" ? undefined : sessionUser?.id;
+
+      const result = await postService.getAllPosts(pageNumber, LIMIT, authorIdFilter);
+
       setPosts(result.data || []);
 
       if (result.pagination) {
         setTotalPages(result.pagination.pages);
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Ocorreu um erro desconhecido.");
-      }
+      // ... erro
     } finally {
       setIsLoadingPosts(false);
     }
-  }, []);
+  }, [sessionUser]); 
 
   // Só busca os posts se o usuário tiver permissão real
   useEffect(() => {
     if (!isAuthLoading && sessionUser && (sessionUser.appRole === "ADMIN" || sessionUser.appRole === "TEACHER")) {
-        fetchPosts(page);
+      fetchPosts(page);
     }
   }, [page, fetchPosts, isAuthLoading, sessionUser]);
 
