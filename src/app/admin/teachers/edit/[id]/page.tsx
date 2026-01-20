@@ -19,19 +19,22 @@ export default function EditTeacherPage() {
 
     const { data: session, isPending: isAuthLoading } = authClient.useSession();
     
+    // O erro de 'Property appRole does not exist' vai sumir se você fez o Passo 1
     const user = session?.user as SessionUser | undefined;
 
     useEffect(() => {
-        if (!isAuthLoading && user?.role === "STUDENT") {
-            router.push("/");
+        if (!isAuthLoading) {
+            if (!user || (user.appRole !== "ADMIN" && user.appRole !== "TEACHER")) {
+                router.push("/");
+            }
         }
     }, [user, isAuthLoading, router]);
 
     useEffect(() => {
         const fetchTeacher = async () => {
             try {
-                const user = await userService.getById(id);
-                setInitialData({ name: user.name, email: user.email });
+                const userData = await userService.getById(id);
+                setInitialData({ name: userData.name, email: userData.email });
             } catch (error) {
                 alert("Erro ao buscar dados do professor.");
                 router.push("/admin/teachers");
@@ -40,7 +43,7 @@ export default function EditTeacherPage() {
             }
         };
 
-        fetchTeacher();
+        if (id) fetchTeacher();
     }, [id, router]);
 
     const handleUpdate = async (data: any) => {
@@ -48,7 +51,7 @@ export default function EditTeacherPage() {
         try {
             const updateData: UpdateUserDTO = {
                 ...data,
-                role: "TEACHER",
+                appRole: "TEACHER", 
             };
 
             await userService.update(id, updateData);

@@ -24,11 +24,17 @@ export default function TeachersListPage() {
     const [totalPages, setTotalPages] = useState(1);
 
     const { data: session, isPending: isAuthLoading } = authClient.useSession();
+    
     const user = session?.user as SessionUser | undefined;
 
+
     useEffect(() => {
-        if (!isAuthLoading && user?.role === "STUDENT") {
-            router.push("/");
+        if (!isAuthLoading && user) {
+            const isAuthorized = user.appRole === "ADMIN" || user.appRole === "TEACHER";
+            
+            if (!isAuthorized) {
+                router.push("/");
+            }
         }
     }, [user, isAuthLoading, router]);
 
@@ -49,9 +55,14 @@ export default function TeachersListPage() {
         }
     }, []);
 
+    // --- 2. PROTEÇÃO DE CARREGAMENTO ---
     useEffect(() => {
-        if (!isAuthLoading && user && user.role !== "STUDENT") {
-            fetchTeachers(page);
+        if (!isAuthLoading && user) {
+            const isAuthorized = user.appRole === "ADMIN" || user.appRole === "TEACHER";
+            
+            if (isAuthorized) {
+                fetchTeachers(page);
+            }
         }
     }, [isAuthLoading, user, page, fetchTeachers]);
 

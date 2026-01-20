@@ -11,14 +11,17 @@ import { Loader2 } from "lucide-react";
 export default function CreateTeacherPage() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     const { data: session, isPending: isAuthLoading } = authClient.useSession();
 
     const user = session?.user as SessionUser | undefined;
 
+    // --- PROTEÇÃO DE ROTA ---
     useEffect(() => {
-        if (!isAuthLoading && user?.role === "STUDENT") {
-            router.push("/");
+        if (!isAuthLoading) {
+            if (!user || (user.appRole !== "ADMIN" && user.appRole !== "TEACHER")) {
+                router.push("/");
+            }
         }
     }, [user, isAuthLoading, router]);
 
@@ -27,7 +30,8 @@ export default function CreateTeacherPage() {
         try {
             const teacherData: CreateUserDTO = {
                 ...data,
-                role: "TEACHER",
+                role: "user",       // Genérico para login
+                appRole: "TEACHER", // Específico da regra de negócio
             };
 
             await userService.create(teacherData);

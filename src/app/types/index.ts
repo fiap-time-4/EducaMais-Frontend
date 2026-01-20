@@ -34,8 +34,9 @@ export interface SessionUser {
     id: string;
     email: string;
     name: string;
-    image?: string; // Geralmente auth providers mandam imagem
-    role: UserRole;
+    image?: string;
+    role: string; 
+    appRole: string;
 }
 
 /**
