@@ -7,7 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 // --- Importações da Lógica de Dados ---
-import { postService, Post } from "../../services/postService";
+import { postService } from "../../services/postService";
+import { Post } from "@/app/types";
 
 export default function PostPage({
   params,

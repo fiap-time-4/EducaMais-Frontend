@@ -7,7 +7,6 @@ import { userService } from "@/app/services/userService";
 import { authClient } from "@/app/services/authClient";
 import { User, SessionUser } from "@/app/types";
 import { Loader2, Trash2, Edit, Plus, Mail, User as UserIcon } from "lucide-react";
-// Verifique se o caminho abaixo está correto no seu projeto (se criou a pasta buttons ou não)
 import { PrimaryButton } from "@/app/components/buttons/StyledButtons"; 
 import Pagination from "@/app/components/Pagination";
 

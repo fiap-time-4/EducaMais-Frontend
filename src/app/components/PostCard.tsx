@@ -40,11 +40,11 @@ const PostCard: React.FC<PostCardProps> = ({
 
         {/* Preview do conteúdo (limitado a 2 linhas para manter o card limpo) */}
         {!isAdmin && (
-          <p className="prose prose-stone prose-indigo lg:prose-lg max-w-none">
+          <div className="prose prose-stone prose-indigo lg:prose-lg max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {getPreview(post.conteudo)}
             </ReactMarkdown>
-          </p>
+          </div>
         )}
 
         <div className="flex items-center gap-2 mt-4">
