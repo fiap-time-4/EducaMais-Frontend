@@ -66,6 +66,50 @@ const Nav = styled.nav`
   }
 `;
 
+// --- NOVOS COMPONENTES DE ESTILO ---
+
+// Agrupa as informações do usuário e o botão de sair
+const UserSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid #e5e7eb; // Uma linha sutil separando a navegação do perfil
+
+  @media (max-width: 768px) {
+    border-left: none;
+    padding-left: 0;
+  }
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center; // Alinha texto à direita
+  line-height: 1.2;
+  
+  @media (max-width: 600px) {
+    display: none; // Esconde em telas muito pequenas para não quebrar
+  }
+`;
+
+const UserName = styled.span`
+  font-size: 0.875rem; // 14px
+  font-weight: 600;
+  color: #1f2937;
+`;
+
+const UserRoleBadge = styled.span<{ $role?: string }>`
+  font-size: 0.7rem; // 11px
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 2px;
+`;
+
+// -----------------------------------
+
 const Header: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const { data: session } = authClient.useSession();
@@ -89,6 +133,16 @@ const Header: React.FC = () => {
     router.push("/");
   };
 
+  // Função auxiliar para traduzir o cargo visualmente
+  const getRoleLabel = (role?: string) => {
+    switch (role) {
+      case 'ADMIN': return 'Administrador';
+      case 'TEACHER': return 'Professor';
+      case 'STUDENT': return 'Aluno';
+      default: return 'Visitante';
+    }
+  };
+
   return (
     <>
       <HeaderContainer>
@@ -100,6 +154,7 @@ const Header: React.FC = () => {
           <Nav>
             {session ? (
               <>
+                {/* Botões de Navegação */}
                 {canManage && (
                   <>
                     <TerciaryButton
@@ -127,17 +182,27 @@ const Header: React.FC = () => {
                       onClick={() => router.push("/admin/create")}
                       className="text-base font-medium md:text-[0.9375rem] sm:text-sm"
                     >
-                      + Nova Postagem
+                      + Novo Post
                     </PrimaryButton>
                   </>
                 )}
 
-                <SecondaryButton
-                  onClick={handleLogout}
-                  className="font-medium text-base md:text-[0.9375rem] sm:text-sm"
-                >
-                  Sair
-                </SecondaryButton>
+                {/* Seção do Usuário (Nome + Logout) */}
+                <UserSection>
+                  <UserInfo>
+                    <UserName>{user?.name?.split(' ')[0]}</UserName> {/* Mostra só o primeiro nome */}
+                    <UserRoleBadge $role={user?.appRole}>
+                      {getRoleLabel(user?.appRole)}
+                    </UserRoleBadge>
+                  </UserInfo>
+
+                  <SecondaryButton
+                    onClick={handleLogout}
+                    className="font-medium text-base md:text-[0.9375rem] sm:text-sm"
+                  >
+                    Sair
+                  </SecondaryButton>
+                </UserSection>
               </>
             ) : (
               <TerciaryButton
