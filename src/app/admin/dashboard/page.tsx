@@ -8,7 +8,7 @@ import { postService } from "@/app/services/postService";
 import { authClient } from "@/app/services/authClient";
 import { Post, SessionUser } from "@/app/types";
 
-const LIMIT = 10;
+const LIMIT = 5;
 
 export default function DashboardPage() {
   const router = useRouter(); 

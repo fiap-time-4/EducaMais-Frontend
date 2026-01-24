@@ -67,7 +67,7 @@ const getPostById = async (id: number): Promise<Post> => {
  * Busca a lista paginada de posts.
  * ACEITA AGORA O FILTRO DE AUTOR (authorId)
  */
-const getAllPosts = async (page = 1, limit = 10, authorId?: string): Promise<PaginatedResponse<Post>> => {
+const getAllPosts = async (page = 1, limit = 5, authorId?: string): Promise<PaginatedResponse<Post>> => {
   try {
     const response = await apiClient.get<PaginatedResponse<Post>>('/posts', {
       // O Axios envia automaticamente na URL: ?page=1&limit=10&authorId=...
@@ -86,7 +86,7 @@ const getAllPosts = async (page = 1, limit = 10, authorId?: string): Promise<Pag
  * Busca posts por um termo de pesquisa.
  * ACEITA AGORA O FILTRO DE AUTOR (authorId)
  */
-const searchPosts = async (term: string, page = 1, limit = 10, authorId?: string): Promise<PaginatedResponse<Post>> => {
+const searchPosts = async (term: string, page = 1, limit = 5, authorId?: string): Promise<PaginatedResponse<Post>> => {
   try {
     const response = await apiClient.get<PaginatedResponse<Post>>('/posts/search', {
       params: { search: term, page, limit, authorId }

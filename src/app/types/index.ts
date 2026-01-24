@@ -54,13 +54,16 @@ export interface CreateUserDTO {
   name: string;
   email: string;
   password: string;
-  role: "TEACHER" | "STUDENT";
+  role?: string;     // Role técnico (ex: "user" ou "admin")
+  appRole: UserRole; // Role de negócio (TEACHER ou STUDENT)
 }
 
 export interface UpdateUserDTO {
   name?: string;
   email?: string;
-  role?: "TEACHER" | "STUDENT";
+  password?: string; // <--- ADICIONADO (Resolve o erro 'password does not exist')
+  role?: string;     // <--- ALTERADO para string (Resolve o erro de atribuição "user")
+  appRole?: UserRole;// <--- ADICIONADO para permitir mudar o cargo
 }
 
 // ==========================================

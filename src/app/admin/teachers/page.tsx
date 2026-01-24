@@ -49,6 +49,7 @@ export default function TeachersListPage() {
                 setTotalPages(result.pagination.pages);
             }
         } catch (err) {
+            console.error(err);
             setError("Erro ao carregar professores.");
         } finally {
             setLoading(false);
@@ -81,6 +82,7 @@ export default function TeachersListPage() {
             setTeachers((prev) => prev.filter((t) => t.id !== id));
             alert("Professor removido com sucesso!");
         } catch (err) {
+            console.error(err);
             alert("Erro ao excluir professor.");
         }
     };

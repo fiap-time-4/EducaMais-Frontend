@@ -19,7 +19,7 @@ const Home: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const LIMIT = 10; // 10 é um padrão melhor que 20 para visualização
+  const LIMIT = 5;
 
   const fetchPosts = useCallback(async (page: number, search: string) => {
     setIsLoading(true);

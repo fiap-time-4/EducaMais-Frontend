@@ -18,24 +18,28 @@ export default function EditTeacherPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { data: session, isPending: isAuthLoading } = authClient.useSession();
-    
-    // O erro de 'Property appRole does not exist' vai sumir se você fez o Passo 1
+
     const user = session?.user as SessionUser | undefined;
 
+    // --- CORREÇÃO AQUI ---
+    // Antes eu tinha deixado só ADMIN. Agora liberei para TEACHER também.
     useEffect(() => {
         if (!isAuthLoading) {
+            // Se não for logado OU (não for Admin E não for Teacher), manda para home.
             if (!user || (user.appRole !== "ADMIN" && user.appRole !== "TEACHER")) {
                 router.push("/");
             }
         }
     }, [user, isAuthLoading, router]);
 
+    // Busca de Dados
     useEffect(() => {
         const fetchTeacher = async () => {
             try {
                 const userData = await userService.getById(id);
                 setInitialData({ name: userData.name, email: userData.email });
             } catch (error) {
+                console.error(error); // <--- ADICIONE ESTA LINHA (Usa a variável e resolve o erro)
                 alert("Erro ao buscar dados do professor.");
                 router.push("/admin/teachers");
             } finally {
@@ -46,20 +50,26 @@ export default function EditTeacherPage() {
         if (id) fetchTeacher();
     }, [id, router]);
 
-    const handleUpdate = async (data: any) => {
+    // Atualização
+    const handleUpdate = async (data: Partial<UpdateUserDTO>) => {
         setIsSubmitting(true);
         try {
             const updateData: UpdateUserDTO = {
-                ...data,
-                appRole: "TEACHER", 
+                name: data.name,
+                email: data.email,
+                password: data.password,
+                appRole: "TEACHER",
+                role: "user"
             };
 
             await userService.update(id, updateData);
 
             alert("Professor atualizado com sucesso!");
             router.push("/admin/teachers");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-            alert(error.message || "Erro ao atualizar.");
+            console.error(error);
+            alert(error.response?.data?.message || "Erro ao atualizar.");
         } finally {
             setIsSubmitting(false);
         }
@@ -73,18 +83,18 @@ export default function EditTeacherPage() {
         );
     }
 
+    if (!initialData) return null;
+
     return (
         <div className="max-w-2xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-6 text-gray-800">Editar Professor</h1>
-            {initialData && (
-                <UserForm
-                    targetRole="TEACHER"
-                    initialData={initialData}
-                    onSubmit={handleUpdate}
-                    isSubmitting={isSubmitting}
-                    isEditing={true}
-                />
-            )}
+            <UserForm
+                targetRole="TEACHER"
+                initialData={initialData}
+                onSubmit={handleUpdate}
+                isSubmitting={isSubmitting}
+                isEditing={true}
+            />
         </div>
     );
 }

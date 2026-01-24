@@ -68,8 +68,9 @@ const getById = async (id: string): Promise<User> => {
  * Busca lista de usuários por Role com paginação.
  * Normaliza a resposta para garantir que o front receba sempre PaginatedResponse.
  */
-const getAllByRole = async (role: string, page = 1, limit = 10): Promise<PaginatedResponse<User>> => {
+const getAllByRole = async (role: string, page = 1, limit = 5): Promise<PaginatedResponse<User>> => {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await apiClient.get<any>('/users', {
       params: { role, page, limit }
     });
