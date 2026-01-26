@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/app/services/authClient";
-import { SessionUser } from "@/app/types";
+import { authClient } from "@/services/authClient";
+import { SessionUser } from "@/types";
 import {
   PrimaryButton,
   SecondaryButton,

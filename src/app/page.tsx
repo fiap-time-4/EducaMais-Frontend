@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Head from "next/head";
-import SearchBar from "./components/SearchBar";
-import PostCard from "./components/PostCard";
-import Pagination from "./components/Pagination"; // <--- Importamos aqui
-import { postService } from "./services/postService";
-import { Post } from "./types";
+import SearchBar from "../components/SearchBar";
+import PostCard from "../components/PostCard";
+import Pagination from "../components/Pagination"; // <--- Importamos aqui
+import { postService } from "../services/postService";
+import { Post } from "../types";
 import { Loader2 } from "lucide-react";
 
 const Home: React.FC = () => {

@@ -2,11 +2,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import PostForm from '@/app/components/PostForm/index';
+import PostForm from '@/components/PostForm/index';
 import { useRouter, useParams } from 'next/navigation';
-import { postService } from '@/app/services/postService';
-import { authClient } from '@/app/services/authClient';
-import { CreatePostData, SessionUser } from '@/app/types'; // Adicione SessionUser
+import { postService } from '@/services/postService';
+import { authClient } from '@/services/authClient';
+import { CreatePostData, SessionUser } from '@/types'; // Adicione SessionUser
 
 export default function EditPostPage() {
   const router = useRouter();

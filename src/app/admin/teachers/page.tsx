@@ -3,13 +3,13 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { userService } from "@/app/services/userService";
-import { authClient } from "@/app/services/authClient";
-import { User, SessionUser } from "@/app/types";
+import { userService } from "@/services/userService";
+import { authClient } from "@/services/authClient";
+import { User, SessionUser } from "@/types";
 import { Loader2, Plus } from "lucide-react";
-import { PrimaryButton } from "@/app/components/buttons/StyledButtons";
-import Pagination from "@/app/components/Pagination";
-import UserCard from "@/app/components/UserCard";
+import { PrimaryButton } from "@/components/buttons/StyledButtons";
+import Pagination from "@/components/Pagination";
+import UserCard from "@/components/UserCard";
 
 const LIMIT = 10;
 

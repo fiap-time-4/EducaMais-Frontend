@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation"; 
-import PostCard from "@/app/components/PostCard";
-import Pagination from "@/app/components/Pagination";
-import { postService } from "@/app/services/postService";
-import { authClient } from "@/app/services/authClient";
-import { Post, SessionUser } from "@/app/types";
+import PostCard from "@/components/PostCard";
+import Pagination from "@/components/Pagination";
+import { postService } from "@/services/postService";
+import { authClient } from "@/services/authClient";
+import { Post, SessionUser } from "@/types";
 
 const LIMIT = 5;
 

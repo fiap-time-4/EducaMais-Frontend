@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import Button from "@/app/components/buttons";
-import Input from "@/app/components/input";
-import Label from "@/app/components/label";
+import Button from "@/components/buttons";
+import Input from "@/components/input";
+import Label from "@/components/label";
 import { Loader2 } from "lucide-react";
-import { UserRole } from "@/app/types";
+import { UserRole } from "@/types";
 
 interface UserFormProps {
     initialData?: {

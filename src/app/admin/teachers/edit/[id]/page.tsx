@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import UserForm from "@/app/components/UserForm";
-import { userService } from "@/app/services/userService";
-import { authClient } from "@/app/services/authClient";
-import { UpdateUserDTO, SessionUser } from "@/app/types";
+import UserForm from "@/components/UserForm";
+import { userService } from "@/services/userService";
+import { authClient } from "@/services/authClient";
+import { UpdateUserDTO, SessionUser } from "@/types";
 import { Loader2 } from "lucide-react";
 
 export default function EditTeacherPage() {

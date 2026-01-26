@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { User } from "@/app/types";
+import { User } from "@/types";
 import { Mail, User as UserIcon, Trash2, Edit } from "lucide-react";
 
 interface UserCardProps {

@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import PostForm from '@/app/components/PostForm'; 
-import { authClient } from '@/app/services/authClient';
-import { postService } from '@/app/services/postService';
-import { SessionUser } from '@/app/types';
+import PostForm from '@/components/PostForm'; 
+import { authClient } from '@/services/authClient';
+import { postService } from '@/services/postService';
+import { SessionUser } from '@/types';
 
 export default function CreatePostPage() {
   const router = useRouter();

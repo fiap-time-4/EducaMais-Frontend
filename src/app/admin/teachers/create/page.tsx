@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import UserForm from "@/app/components/UserForm";
-import { userService } from "@/app/services/userService";
-import { authClient } from "@/app/services/authClient";
-import { CreateUserDTO, SessionUser } from "@/app/types";
+import UserForm from "@/components/UserForm";
+import { userService } from "@/services/userService";
+import { authClient } from "@/services/authClient";
+import { CreateUserDTO, SessionUser } from "@/types";
 import { Loader2 } from "lucide-react";
 
 export default function CreateTeacherPage() {

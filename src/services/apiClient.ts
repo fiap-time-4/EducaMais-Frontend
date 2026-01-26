@@ -1,5 +1,5 @@
 import axios from "axios";
-import { authClient } from "@/app/services/authClient";
+import { authClient } from "@/services/authClient";
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,

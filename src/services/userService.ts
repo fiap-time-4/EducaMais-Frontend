@@ -3,7 +3,7 @@
 import apiClient from './apiClient';
 import axios from 'axios';
 // Ajuste o caminho dos tipos conforme sua estrutura (geralmente @/app/types ou ../types)
-import { User, CreateUserDTO, UpdateUserDTO, PaginatedResponse } from '@/app/types';
+import { User, CreateUserDTO, UpdateUserDTO, PaginatedResponse } from '@/types';
 
 /**
  * Cria um novo usuário

@@ -1,12 +1,12 @@
 "use client";
 
-import Button from "@/app/components/buttons";
-import Input from "@/app/components/input";
-import Label from "@/app/components/label";
-import Toast, { ToastVariant } from "@/app/components/toast";
+import Button from "@/components/buttons";
+import Input from "@/components/input";
+import Label from "@/components/label";
+import Toast, { ToastVariant } from "@/components/toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { authClient } from "@/app/services/authClient";
+import { authClient } from "@/services/authClient";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
