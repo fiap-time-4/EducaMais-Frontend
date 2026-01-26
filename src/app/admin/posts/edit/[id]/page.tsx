@@ -2,41 +2,51 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import PostForm from '@/app/components/PostForm/index';
+import PostForm from '@/components/PostForm/index';
 import { useRouter, useParams } from 'next/navigation';
-import { postService } from '@/app/services/postService';
-import { authClient } from '@/app/services/authClient';
-
-interface PostData {
-  titulo: string;
-  conteudo: string;
-}
+import { postService } from '@/services/postService';
+import { authClient } from '@/services/authClient';
+import { CreatePostData, SessionUser } from '@/types'; // Adicione SessionUser
 
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
   const postId = params?.id as string;
 
-  const [initialData, setInitialData] = useState<PostData | null>(null);
+  const [initialData, setInitialData] = useState<CreatePostData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Autenticação
   const { data: session, isPending } = authClient.useSession();
+  
+  // Cast para acessar o appRole
+  const user = session?.user as SessionUser | undefined;
 
-  // Proteção da rota
+  // --- PROTEÇÃO DA ROTA (CORRIGIDA) ---
   useEffect(() => {
-    if (!isPending && !session) {
-      router.push('/admin/signin');
+    if (!isPending) {
+      // 1. Se não tem usuário logado -> Login
+      if (!user) {
+        router.push('/admin/signin');
+        return;
+      }
+
+      // 2. Se tem usuário, mas é ALUNO -> Home
+      // Só deixa passar se for ADMIN ou TEACHER
+      if (user.appRole !== 'ADMIN' && user.appRole !== 'TEACHER') {
+        router.push('/');
+      }
     }
-  }, [isPending, session, router]);
+  }, [isPending, user, router]);
 
   // Busca os dados do post ao carregar
   useEffect(() => {
-    if (!postId) return;
+    // Adicionei verificação de user aqui para não buscar dados se não tiver permissão
+    if (!postId || !user || (user.appRole !== 'ADMIN' && user.appRole !== 'TEACHER')) return;
 
-    const fetchPostData = async () => {
+    const fetchCreatePostData = async () => {
       setIsLoading(true);
       setError(null);
 
@@ -57,8 +67,8 @@ export default function EditPostPage() {
       }
     };
 
-    fetchPostData();
-  }, [postId]);
+    fetchCreatePostData();
+  }, [postId, user]); // user na dependência
 
   // Função chamada ao salvar
   const handleUpdatePost = async (formData: { titulo: string; conteudo: string }) => {
@@ -72,19 +82,22 @@ export default function EditPostPage() {
     } catch (err: unknown) {
       setIsSubmitting(false);
       
-      // Lógica igual ao create: lança o erro para ser tratado ou exibido
       if (err instanceof Error) {
         throw new Error(err.message);
-        // Se preferir exibir o erro no topo da página ao invés de lançar, use: setError(err.message);
       } else {
         throw new Error('Ocorreu um erro inesperado ao atualizar.');
       }
     }
   };
 
-  // Renderização de Loading e Erros de Carregamento
+  // Renderização de Loading
   if (isPending || isLoading) return <div className="p-6">Carregando...</div>;
   
+  // Bloqueio visual final: Se não for chefe, não mostra nada (enquanto redireciona)
+  if (user?.appRole !== 'ADMIN' && user?.appRole !== 'TEACHER') {
+    return null; 
+  }
+
   if (error && !initialData) {
     return (
       <div className="max-w-4xl mx-auto p-6 text-red-600">
@@ -100,7 +113,6 @@ export default function EditPostPage() {
       <h1 className="text-3xl font-bold text-gray-800 mb-2">Editar Postagem</h1>
       <p className="text-gray-600 mb-6">Atualize as informações do artigo abaixo.</p>
 
-      {/* Se houver erro de envio (submit), mostramos aqui também se necessário */}
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <PostForm
