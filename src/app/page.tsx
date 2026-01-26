@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Head from "next/head";
 import SearchBar from "../components/SearchBar";
 import PostCard from "../components/PostCard";
-import Pagination from "../components/Pagination"; // <--- Importamos aqui
+import Pagination from "../components/Pagination";
 import { postService } from "../services/postService";
 import { Post } from "../types";
 import { Loader2 } from "lucide-react";
@@ -13,9 +13,12 @@ const Home: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  
+  // 1. O texto que aparece no Input enquanto digita
   const [searchTerm, setSearchTerm] = useState("");
+  // 2. O texto que realmente será usado na busca (só muda no submit)
+  const [activeSearch, setActiveSearch] = useState("");
 
-  // Estados de paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -26,15 +29,12 @@ const Home: React.FC = () => {
     setHasError(false);
 
     try {
-      // Como searchPosts e getAllPosts retornam a mesma estrutura (PaginatedResponse),
-      // podemos simplificar a lógica:
       const response = search.trim()
         ? await postService.searchPosts(search, page, LIMIT)
         : await postService.getAllPosts(page, LIMIT);
 
       setPosts(response.data);
 
-      // A API nos diz quantas páginas existem. Muito mais seguro!
       if (response.pagination) {
         setTotalPages(response.pagination.pages);
       }
@@ -47,13 +47,16 @@ const Home: React.FC = () => {
     }
   }, []);
 
+  // 3. O useEffect agora depende de 'activeSearch' e 'currentPage'
+  // O linter para de reclamar porque activeSearch está na lista.
   useEffect(() => {
-    fetchPosts(currentPage, searchTerm);
-  }, [currentPage, fetchPosts]); // searchTerm removido daqui para não buscar enquanto digita, só no submit
+    fetchPosts(currentPage, activeSearch);
+  }, [currentPage, activeSearch, fetchPosts]); 
 
+  // 4. Ao submeter a busca, atualizamos o activeSearch
   const handleSearchSubmit = () => {
-    setCurrentPage(1); // Volta para pág 1 ao pesquisar
-    fetchPosts(1, searchTerm);
+    setCurrentPage(1); 
+    setActiveSearch(searchTerm); // <--- Aqui acontece a mágica
   };
 
   const handleNextPage = () => {
@@ -84,7 +87,7 @@ const Home: React.FC = () => {
 
         <div className="mb-12">
           <SearchBar
-            value={searchTerm}
+            value={searchTerm} // O input continua ligado ao searchTerm
             onChange={(e) => setSearchTerm(e.target.value)}
             onSearch={handleSearchSubmit}
           />
@@ -108,7 +111,6 @@ const Home: React.FC = () => {
             <>
               {posts.map((post) => <PostCard key={post.id} post={post} />)}
 
-              {/* USANDO O COMPONENTE NOVO */}
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

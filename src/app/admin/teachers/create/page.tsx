@@ -1,51 +1,65 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import axios from "axios";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import UserForm from "@/components/UserForm";
 import { userService } from "@/services/userService";
 import { authClient } from "@/services/authClient";
-import { CreateUserDTO, SessionUser } from "@/types";
+import { CreateUserDTO } from "@/types";
 import { Loader2 } from "lucide-react";
+import { useRequireRole } from "@/hooks/useRequireRole";
 
 export default function CreateTeacherPage() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { data: session, isPending: isAuthLoading } = authClient.useSession();
+    // 1. SEGURANÇA: O Hook assume o controle.
+    // Redireciona automaticamente se não for ADMIN ou TEACHER
+    useRequireRole(["ADMIN", "TEACHER"]);
 
-    const user = session?.user as SessionUser | undefined;
+    // Precisamos do isPending apenas para o loading visual inicial
+    const { isPending: isAuthLoading } = authClient.useSession();
 
-    // --- PROTEÇÃO DE ROTA ---
-    useEffect(() => {
-        if (!isAuthLoading) {
-            if (!user || (user.appRole !== "ADMIN" && user.appRole !== "TEACHER")) {
-                router.push("/");
-            }
-        }
-    }, [user, isAuthLoading, router]);
-
-    const handleCreate = async (data: any) => {
+    // 2. TIPAGEM MELHORADA: Trocamos 'any' por 'Partial<CreateUserDTO>'
+    const handleCreate = async (data: Partial<CreateUserDTO>) => {
         setIsSubmitting(true);
         try {
+            // Garantimos que os dados obrigatórios existam antes de enviar
             const teacherData: CreateUserDTO = {
-                ...data,
-                role: "user",       // Genérico para login
-                appRole: "TEACHER", // Específico da regra de negócio
+                name: data.name || "",
+                email: data.email || "",
+                password: data.password || "",
+                role: "user",       
+                appRole: "TEACHER", 
             };
 
             await userService.create(teacherData);
             alert("Professor cadastrado com sucesso!");
             router.push("/admin/teachers");
-        } catch (error: any) {
-            alert(error.message || "Erro ao criar professor.");
+        } catch (error: unknown) { // <--- 'unknown' para evitar o lint de 'any'
+            console.error(error);
+            let message = "Erro ao criar professor.";
+
+            // 3. TRATAMENTO DE ERRO SEGURO (Type Narrowing)
+            if (axios.isAxiosError(error)) {
+                message = error.response?.data?.message || message;
+            } else if (error instanceof Error) {
+                message = error.message;
+            }
+
+            alert(message);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     if (isAuthLoading) {
-        return <div className="flex justify-center h-screen items-center"><Loader2 className="animate-spin text-orange-500" /></div>;
+        return (
+            <div className="flex justify-center h-screen items-center">
+                <Loader2 className="animate-spin text-orange-500" size={32} />
+            </div>
+        );
     }
 
     return (

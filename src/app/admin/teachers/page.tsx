@@ -2,19 +2,21 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { userService } from "@/services/userService";
 import { authClient } from "@/services/authClient";
-import { User, SessionUser } from "@/types";
+import { User } from "@/types";
 import { Loader2, Plus } from "lucide-react";
 import { PrimaryButton } from "@/components/buttons/StyledButtons";
 import Pagination from "@/components/Pagination";
 import UserCard from "@/components/UserCard";
+import { useRequireRole } from "@/hooks/useRequireRole";
 
 const LIMIT = 10;
 
 export default function TeachersListPage() {
-    const router = useRouter();
+    // 1. SEGURANÇA: O Hook assume o controle.
+    // Redireciona automaticamente se não for ADMIN ou TEACHER
+    useRequireRole(["ADMIN", "TEACHER"]);
 
     const [teachers, setTeachers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -23,20 +25,8 @@ export default function TeachersListPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    const { data: session, isPending: isAuthLoading } = authClient.useSession();
-    
-    const user = session?.user as SessionUser | undefined;
-
-
-    useEffect(() => {
-        if (!isAuthLoading && user) {
-            const isAuthorized = user.appRole === "ADMIN" || user.appRole === "TEACHER";
-            
-            if (!isAuthorized) {
-                router.push("/");
-            }
-        }
-    }, [user, isAuthLoading, router]);
+    // Precisamos saber se o auth terminou apenas para não disparar o fetch antes da hora
+    const { isPending: isAuthLoading } = authClient.useSession();
 
     const fetchTeachers = useCallback(async (pageNumber: number) => {
         try {
@@ -48,7 +38,7 @@ export default function TeachersListPage() {
             if (result.pagination) {
                 setTotalPages(result.pagination.pages);
             }
-        } catch (err) {
+        } catch (err: unknown) { // <--- Tipagem segura
             console.error(err);
             setError("Erro ao carregar professores.");
         } finally {
@@ -56,23 +46,27 @@ export default function TeachersListPage() {
         }
     }, []);
 
-    // --- 2. PROTEÇÃO DE CARREGAMENTO ---
+    // 2. BUSCA DE DADOS SIMPLIFICADA
+    // Não precisamos mais de ifs complexos aqui dentro.
+    // Se o código chegou aqui e o isAuthLoading é false, o usuário TEM permissão.
     useEffect(() => {
-        if (!isAuthLoading && user) {
-            const isAuthorized = user.appRole === "ADMIN" || user.appRole === "TEACHER";
-            
-            if (isAuthorized) {
-                fetchTeachers(page);
-            }
+        if (!isAuthLoading) {
+            fetchTeachers(page);
         }
-    }, [isAuthLoading, user, page, fetchTeachers]);
+    }, [isAuthLoading, page, fetchTeachers]);
 
     const handlePrevPage = () => {
-        if (page > 1) setPage((p) => p - 1);
+        if (page > 1) {
+            setPage((p) => p - 1);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
     };
 
     const handleNextPage = () => {
-        if (page < totalPages) setPage((p) => p + 1);
+        if (page < totalPages) {
+            setPage((p) => p + 1);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -81,12 +75,13 @@ export default function TeachersListPage() {
             await userService.delete(id);
             setTeachers((prev) => prev.filter((t) => t.id !== id));
             alert("Professor removido com sucesso!");
-        } catch (err) {
+        } catch (err: unknown) {
             console.error(err);
             alert("Erro ao excluir professor.");
         }
     };
 
+    // Mostra loading enquanto autentica OU carrega dados
     if (isAuthLoading || loading) {
         return (
             <div className="flex justify-center items-center h-screen">

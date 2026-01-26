@@ -1,17 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation"; 
 import PostCard from "@/components/PostCard";
 import Pagination from "@/components/Pagination";
 import { postService } from "@/services/postService";
 import { authClient } from "@/services/authClient";
 import { Post, SessionUser } from "@/types";
+import { useRequireRole } from "@/hooks/useRequireRole";
 
 const LIMIT = 5;
 
 export default function DashboardPage() {
-  const router = useRouter(); 
+  // 1. SEGURANÇA: O hook assume o controle do redirecionamento
+  useRequireRole(["ADMIN", "TEACHER"]);
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,28 +21,19 @@ export default function DashboardPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Precisamos manter o useSession aqui para acessar os DADOS do usuário (id, nome),
+  // já que o hook useRequireRole serve apenas para proteção (side-effect).
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
-
-  // Cast para garantir que o TS reconheça o appRole
   const sessionUser = session?.user as SessionUser | undefined;
 
-  // --- 1. SEGURANÇA (O que faltava) ---
-  useEffect(() => {
-    if (!isAuthLoading) {
-      // Se não logado, OU se não for chefe (ADMIN ou TEACHER), manda pra home.
-      if (!sessionUser || (sessionUser.appRole !== "ADMIN" && sessionUser.appRole !== "TEACHER")) {
-        router.push("/");
-      }
-    }
-  }, [sessionUser, isAuthLoading, router]);
-
   const fetchPosts = useCallback(async (pageNumber: number) => {
+    // Segurança extra: se o usuário ainda não carregou, não busca nada
+    if (!sessionUser) return;
+
     setIsLoadingPosts(true);
     try {
-      // REGRA DE OURO:
-      // Se for ADMIN -> Manda undefined (vê tudo)
-      // Se for TEACHER -> Manda o ID dele (vê só os dele)
-      const authorIdFilter = sessionUser?.appRole === "ADMIN" ? undefined : sessionUser?.id;
+      // Lógica de filtro: Admin vê tudo (undefined), Teacher vê apenas os seus (id)
+      const authorIdFilter = sessionUser.appRole === "ADMIN" ? undefined : sessionUser.id;
 
       const result = await postService.getAllPosts(pageNumber, LIMIT, authorIdFilter);
 
@@ -50,15 +43,17 @@ export default function DashboardPage() {
         setTotalPages(result.pagination.pages);
       }
     } catch (err: unknown) {
-      // ... erro
+      console.error("Erro ao buscar posts:", err);
+      setError("Erro ao carregar posts.");
     } finally {
       setIsLoadingPosts(false);
     }
   }, [sessionUser]); 
 
-  // Só busca os posts se o usuário tiver permissão real
+  // Effect para buscar os posts
   useEffect(() => {
-    if (!isAuthLoading && sessionUser && (sessionUser.appRole === "ADMIN" || sessionUser.appRole === "TEACHER")) {
+    // Só dispara a busca quando o usuário estiver carregado e confirmado
+    if (!isAuthLoading && sessionUser) {
       fetchPosts(page);
     }
   }, [page, fetchPosts, isAuthLoading, sessionUser]);
@@ -86,7 +81,6 @@ export default function DashboardPage() {
           currentPosts.filter((post) => post.id !== postId)
         );
         alert("Post excluído com sucesso!");
-        // Opcional: recarregar a página atual para garantir ordem
         fetchPosts(page);
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -98,10 +92,12 @@ export default function DashboardPage() {
     }
   };
 
+  // Se o Auth estiver carregando, mostramos o loader para evitar "flash" de conteúdo
+  // ou tentar buscar posts sem ter o ID do usuário ainda.
   if (isAuthLoading || isLoadingPosts) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-lg text-gray-600">Carregando Postagens...</p>
+        <p className="text-lg text-gray-600">Carregando...</p>
       </div>
     );
   }
@@ -114,6 +110,7 @@ export default function DashboardPage() {
     );
   }
 
+  // Se chegou aqui, o useRequireRole garantiu que é ADMIN ou TEACHER
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
@@ -137,7 +134,7 @@ export default function DashboardPage() {
             {posts.map((post) => (
               <PostCard
                 key={post.id}
-                isAdmin={true} // Se chegou aqui, é admin ou teacher
+                isAdmin={true} 
                 post={post}
                 onDelete={() => handleDelete(post.id)}
               />

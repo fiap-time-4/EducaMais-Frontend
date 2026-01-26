@@ -1,36 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import PostForm from '@/components/PostForm'; 
-import { authClient } from '@/services/authClient';
-import { postService } from '@/services/postService';
-import { SessionUser } from '@/types';
+import PostForm from '@/components/PostForm';
+import { postService } from "@/services/postService";
+import { authClient } from "@/services/authClient";
+import { useRequireRole } from '@/hooks/useRequireRole'; // <--- Importe o hook
 
 export default function CreatePostPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
    
-  const { data: session, isPending } = authClient.useSession();
-  
-  const user = session?.user as SessionUser | undefined;
+  // 1. SEGURANÇA: O hook blinda a rota. 
+  // Se não for ADMIN ou TEACHER, ele expulsa automaticamente.
+  useRequireRole(['ADMIN', 'TEACHER']);
 
-  // --- PROTEÇÃO DE ROTA CORRIGIDA ---
-  useEffect(() => {
-    if (!isPending) {
-      // 1. Se não estiver logado -> Manda pro Login
-      if (!user) {
-        router.push('/admin/signin');
-        return;
-      }
-
-      // 2. Se estiver logado, mas for ALUNO -> Manda pra Home
-      // Só ADMIN e TEACHER podem passar daqui
-      if (user.appRole !== 'ADMIN' && user.appRole !== 'TEACHER') {
-        router.push('/');
-      }
-    }
-  }, [isPending, user, router]);
+  // Ainda precisamos do isPending para mostrar o loading visual
+  // enquanto o hook verifica a sessão em background.
+  const { isPending } = authClient.useSession();
 
   const handleCreatePost = async (data: { titulo: string; conteudo: string }) => {
     setIsSubmitting(true);
@@ -46,18 +33,17 @@ export default function CreatePostPage() {
     } catch (error: unknown) {
       setIsSubmitting(false);
       
-      if (error instanceof Error) {
-        throw new Error(error.message); 
-      } else {
-        throw new Error('Erro desconhecido ao criar post.');
-      }
+      // Melhor tratar o erro com alert ou state do que dar throw aqui,
+      // pois throw em event handler pode quebrar a aplicação React.
+      const message = error instanceof Error ? error.message : 'Erro desconhecido ao criar post.';
+      alert(message);
+      console.error(error);
     }
   };
 
-  if (isPending) return <div className="p-6 text-center">Carregando permissões...</div>;
-
-  if (user?.appRole !== 'ADMIN' && user?.appRole !== 'TEACHER') {
-      return null;
+  // Enquanto a autenticação carrega, mostramos feedback visual
+  if (isPending) {
+    return <div className="p-6 text-center text-gray-500">Verificando permissões...</div>;
   }
 
   return (
