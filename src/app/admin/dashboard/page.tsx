@@ -101,7 +101,7 @@ export default function DashboardPage() {
   if (isAuthLoading || isLoadingPosts) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-lg text-gray-600">Carregando painel...</p>
+        <p className="text-lg text-gray-600">Carregando Postagens...</p>
       </div>
     );
   }

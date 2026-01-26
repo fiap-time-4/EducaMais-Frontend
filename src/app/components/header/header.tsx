@@ -175,7 +175,7 @@ const Header: React.FC = () => {
                       onClick={() => router.push("/admin/dashboard")}
                       className="font-medium text-base md:text-[0.9375rem] sm:text-sm"
                     >
-                      Painel
+                      Postagens
                     </TerciaryButton>
 
                     <PrimaryButton
