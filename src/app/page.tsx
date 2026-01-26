@@ -81,7 +81,7 @@ const Home: React.FC = () => {
       <main className="max-w-4xl mx-auto p-6">
         <header className="mb-10 text-center">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2 text-[#62A59D]">
-            Últimas Notícias e Artigos
+            Conteúdos Recentes
           </h1>
         </header>
 

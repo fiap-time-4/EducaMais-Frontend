@@ -179,10 +179,10 @@ const Header: React.FC = () => {
                     </TerciaryButton>
 
                     <PrimaryButton
-                      onClick={() => router.push("/admin/create")}
+                      onClick={() => router.push("/admin/posts/create")}
                       className="text-base font-medium md:text-[0.9375rem] sm:text-sm"
                     >
-                      + Novo Post
+                      + Criar Conteúdo
                     </PrimaryButton>
                   </>
                 )}

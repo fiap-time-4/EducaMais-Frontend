@@ -50,7 +50,7 @@ const PostCard: React.FC<PostCardProps> = ({
         {isAdmin ? (
           <>
             <Link
-              href={`/admin/edit/${post.id}`}
+              href={`/admin/posts/edit/${post.id}`}
               className="flex-1 text-center text-indigo-600 hover:bg-indigo-50 font-medium text-sm border border-indigo-200 px-4 py-2 rounded transition-all"
             >
               Editar

@@ -115,7 +115,7 @@ export default function DashboardPage() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Seus Conteúdos</h1>
           {sessionUser && (
             <p className="text-gray-600 mt-1">
               Olá, <span className="font-semibold">{sessionUser.name || sessionUser.email}</span>!
