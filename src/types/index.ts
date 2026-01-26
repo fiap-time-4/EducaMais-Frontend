@@ -48,6 +48,7 @@ export interface User {
   email: string;
   role: UserRole;
   createdAt: string;
+  appRole: "ADMIN" | "TEACHER" | "STUDENT";
 }
 
 export interface CreateUserDTO {

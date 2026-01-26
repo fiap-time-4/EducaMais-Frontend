@@ -123,7 +123,7 @@ export default function TeachersListPage() {
                             <UserCard
                                 key={teacher.id}
                                 user={teacher}
-                                type="TEACHER"
+                                type={teacher.appRole}
                                 editLink={`/admin/teachers/edit/${teacher.id}`}
                                 onDelete={handleDelete}
                             />
