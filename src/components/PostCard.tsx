@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Post } from "../services/postService";
+import { Post } from "../types";
 
 interface PostCardProps {
   post: Post;
@@ -17,34 +17,25 @@ const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const postUrl = `/posts/${post.id}`;
 
-  const getPreview = (text: string) => {
-    // 1. Remove símbolos de Markdown comuns para o preview não ficar "sujo"
-    const cleanText = text
-      .replace(/[#*`_]/g, "") // Remove #, *, `, _
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1"); // Transforma [link](url) em apenas "link"
-
-    const words = cleanText.split(/\s+/);
-    if (words.length <= 10) return cleanText;
-
-    return words.slice(0, 10).join(" ") + "...";
-  };
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       {/* Lado Esquerdo: Conteúdo do Post */}
-      <div className="flex-1 w-full">
+      <div className="flex-1 w-full min-w-0"> {/* min-w-0 é CRUCIAL para o truncate funcionar em flexbox */}
         <Link href={postUrl}>
-          <h2 className="text-xl font-bold text-gray-800 hover:text-indigo-600 transition-colors cursor-pointer">
+          <h2 className="text-xl font-bold text-gray-800 hover:text-indigo-600 transition-colors cursor-pointer mb-2">
             {post.titulo}
           </h2>
         </Link>
 
-        {/* Preview do conteúdo (limitado a 2 linhas para manter o card limpo) */}
+        {/* Preview do conteúdo */}
+        {/* line-clamp-2: Limita a 2 linhas */}
+        {/* break-words: Quebra palavras gigantes (AlinhamentoAlinhamento...) */}
         {!isAdmin && (
-          <p className="prose prose-stone prose-indigo lg:prose-lg max-w-none">
+          <div className="prose prose-sm text-gray-600 max-w-none line-clamp-2 break-words">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {getPreview(post.conteudo)}
+              {post.conteudo}
             </ReactMarkdown>
-          </p>
+          </div>
         )}
 
         <div className="flex items-center gap-2 mt-4">
@@ -55,12 +46,11 @@ const PostCard: React.FC<PostCardProps> = ({
       </div>
 
       {/* Lado Direito: Ações Condicionais */}
-      <div className="flex gap-3 shrink-0 w-full md:w-auto">
+      <div className="flex gap-3 shrink-0 w-full md:w-auto mt-4 md:mt-0">
         {isAdmin ? (
           <>
-            {/* Botões para o Administrador */}
             <Link
-              href={`/admin/edit/${post.id}`}
+              href={`/admin/posts/edit/${post.id}`}
               className="flex-1 text-center text-indigo-600 hover:bg-indigo-50 font-medium text-sm border border-indigo-200 px-4 py-2 rounded transition-all"
             >
               Editar
@@ -74,7 +64,6 @@ const PostCard: React.FC<PostCardProps> = ({
             </button>
           </>
         ) : (
-          /* Botão para o Usuário Comum */
           <Link
             href={postUrl}
             className="w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-6 py-2 rounded shadow-sm transition-colors"
