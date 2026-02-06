@@ -40,7 +40,7 @@ const PostCard: React.FC<PostCardProps> = ({
 
         <div className="flex items-center gap-2 mt-4">
           <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-            Autor: {post.autor?.name || "Desconhecido"}
+            {post.autor?.name || "Desconhecido"}
           </span>
         </div>
       </div>
