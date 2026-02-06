@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import Pagination from "@/components/Pagination";
+import { PrimaryButton } from "@/components/buttons/StyledButtons";
 import { postService } from "@/services/postService";
 import { authClient } from "@/services/authClient";
 import { Post, SessionUser } from "@/types";
@@ -11,6 +14,7 @@ import { useRequireRole } from "@/hooks/useRequireRole";
 const LIMIT = 5;
 
 export default function DashboardPage() {
+  // 1. SEGURANÇA
   useRequireRole(["ADMIN", "TEACHER"]);
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -31,6 +35,7 @@ export default function DashboardPage() {
 
     try {
       let result;
+      // ADMIN vê tudo, PROFESSOR vê só os seus
       if (sessionUser.appRole === "ADMIN") {
         result = await postService.getAllPosts(pageNumber, LIMIT);
       } else {
@@ -38,12 +43,12 @@ export default function DashboardPage() {
       }
 
       setPosts(result.data || []);
-
+      
       if (result.pagination) {
         setTotalPages(result.pagination.pages);
       }
     } catch (err: unknown) {
-      console.error("Erro ao buscar posts:", err);
+      console.error(err);
       setError("Erro ao carregar posts.");
     } finally {
       setIsLoadingPosts(false);
@@ -79,7 +84,7 @@ export default function DashboardPage() {
           currentPosts.filter((post) => post.id !== postId)
         );
         alert("Post excluído com sucesso!");
-        fetchPosts(page);
+        fetchPosts(page); // Atualiza a lista para manter a paginação correta
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -98,14 +103,6 @@ export default function DashboardPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 text-red-700 rounded-md m-4">
-        Erro: {error}
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
@@ -119,7 +116,20 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
+
+        <Link href="/admin/posts/create">
+            <PrimaryButton>
+                <Plus size={18} />
+                <span className="hidden sm:inline">Criar Conteúdo</span>
+            </PrimaryButton>
+        </Link>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-100 text-red-700 rounded-md m-4">
+          Erro: {error}
+        </div>
+      )}
 
       {posts.length === 0 ? (
         <div className="text-center p-10 bg-gray-50 rounded-lg border border-gray-200">
@@ -131,7 +141,7 @@ export default function DashboardPage() {
             {posts.map((post) => (
               <PostCard
                 key={post.id}
-                isAdmin={true}
+                isAdmin={true} 
                 post={post}
                 onDelete={() => handleDelete(post.id)}
               />
