@@ -58,10 +58,7 @@ export default function PostCard({
 
         {/* --- RODAPÉ DO CARD: Autor + Badge Padronizado --- */}
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-            {post.autor?.name || "Desconhecido"}
-          </span>
-          
+
           {/* Renderização do Badge usando o roleConfig */}
           {currentRole && (
             <span
@@ -70,6 +67,11 @@ export default function PostCard({
               {currentRole.label}
             </span>
           )}
+
+          <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+            {post.autor?.name || "Desconhecido"}
+          </span>
+
         </div>
       </div>
 
