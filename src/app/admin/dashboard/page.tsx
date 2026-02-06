@@ -11,7 +11,6 @@ import { useRequireRole } from "@/hooks/useRequireRole";
 const LIMIT = 5;
 
 export default function DashboardPage() {
-  // 1. SEGURANÇA: O hook assume o controle do redirecionamento
   useRequireRole(["ADMIN", "TEACHER"]);
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -21,21 +20,22 @@ export default function DashboardPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Precisamos manter o useSession aqui para acessar os DADOS do usuário (id, nome),
-  // já que o hook useRequireRole serve apenas para proteção (side-effect).
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
   const sessionUser = session?.user as SessionUser | undefined;
 
   const fetchPosts = useCallback(async (pageNumber: number) => {
-    // Segurança extra: se o usuário ainda não carregou, não busca nada
     if (!sessionUser) return;
 
     setIsLoadingPosts(true);
-    try {
-      // Lógica de filtro: Admin vê tudo (undefined), Teacher vê apenas os seus (id)
-      const authorIdFilter = sessionUser.appRole === "ADMIN" ? undefined : sessionUser.id;
+    setError(null);
 
-      const result = await postService.getAllPosts(pageNumber, LIMIT, authorIdFilter);
+    try {
+      let result;
+      if (sessionUser.appRole === "ADMIN") {
+        result = await postService.getAllPosts(pageNumber, LIMIT);
+      } else {
+        result = await postService.getPostsByAuthor(sessionUser.id, pageNumber, LIMIT);
+      }
 
       setPosts(result.data || []);
 
@@ -48,11 +48,9 @@ export default function DashboardPage() {
     } finally {
       setIsLoadingPosts(false);
     }
-  }, [sessionUser]); 
+  }, [sessionUser]);
 
-  // Effect para buscar os posts
   useEffect(() => {
-    // Só dispara a busca quando o usuário estiver carregado e confirmado
     if (!isAuthLoading && sessionUser) {
       fetchPosts(page);
     }
@@ -92,8 +90,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Se o Auth estiver carregando, mostramos o loader para evitar "flash" de conteúdo
-  // ou tentar buscar posts sem ter o ID do usuário ainda.
   if (isAuthLoading || isLoadingPosts) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -110,12 +106,13 @@ export default function DashboardPage() {
     );
   }
 
-  // Se chegou aqui, o useRequireRole garantiu que é ADMIN ou TEACHER
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Seus Conteúdos</h1>
+          <h1 className="text-3xl font-bold text-gray-800">
+            {sessionUser?.appRole === 'ADMIN' ? 'Todos os Posts' : 'Minhas Publicações'}
+          </h1>
           {sessionUser && (
             <p className="text-gray-600 mt-1">
               Olá, <span className="font-semibold">{sessionUser.name || sessionUser.email}</span>!
@@ -126,7 +123,7 @@ export default function DashboardPage() {
 
       {posts.length === 0 ? (
         <div className="text-center p-10 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-500">Nenhum post publicado.</p>
+          <p className="text-gray-500">Nenhum post encontrado.</p>
         </div>
       ) : (
         <>
@@ -134,7 +131,7 @@ export default function DashboardPage() {
             {posts.map((post) => (
               <PostCard
                 key={post.id}
-                isAdmin={true} 
+                isAdmin={true}
                 post={post}
                 onDelete={() => handleDelete(post.id)}
               />
