@@ -14,6 +14,7 @@ import { useRequireRole } from "@/hooks/useRequireRole";
 const LIMIT = 10;
 
 export default function StudentsListPage() {
+  // 1. SEGURANÇA: Só Admin e Teacher entram aqui
   useRequireRole(["ADMIN", "TEACHER"]);
 
   const [students, setStudents] = useState<User[]>([]);
@@ -28,8 +29,9 @@ export default function StudentsListPage() {
   const fetchStudents = useCallback(async (pageNumber: number) => {
     try {
       setLoading(true);
+      // PADRÃO: Passar como array ["STUDENT"] para consistência com o service
       const result = await userService.getAllByRole(
-        "STUDENT",
+        ["STUDENT"], 
         pageNumber,
         LIMIT
       );
@@ -41,7 +43,7 @@ export default function StudentsListPage() {
       }
     } catch (err: unknown) {
       console.error(err);
-      setError("Erro ao carregar alunos.");
+      setError("Erro ao carregar lista de alunos.");
     } finally {
       setLoading(false);
     }
@@ -71,7 +73,7 @@ export default function StudentsListPage() {
     if (!confirm("Tem certeza que deseja remover este aluno?")) return;
     try {
       await userService.delete(id);
-      setStudents((prev) => prev.filter((t) => t.id !== id));
+      setStudents((prev) => prev.filter((s) => s.id !== id));
       alert("Aluno removido com sucesso!");
     } catch (err: unknown) {
       console.error(err);
@@ -86,6 +88,9 @@ export default function StudentsListPage() {
       </div>
     );
   }
+
+  // Segurança visual extra: Garante que só renderiza se for STUDENT mesmo
+  const filteredStudents = students.filter(student => student.appRole === 'STUDENT');
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -109,18 +114,18 @@ export default function StudentsListPage() {
         </div>
       )}
 
-      {!error && students.length === 0 ? (
+      {!error && filteredStudents.length === 0 ? (
         <div className="text-center p-10 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-500">Nenhum aluno cadastrado ainda.</p>
+          <p className="text-gray-500">Nenhum aluno encontrado.</p>
         </div>
       ) : (
         <>
           <div className="grid gap-4">
-            {students.map((student) => (
+            {filteredStudents.map((student) => (
               <UserCard
                 key={student.id}
                 user={student}
-                type={student.appRole}
+                type={student.appRole} // O UserCard vai pintar de AZUL (Student)
                 editLink={`/admin/students/edit/${student.id}`}
                 onDelete={handleDelete}
               />
