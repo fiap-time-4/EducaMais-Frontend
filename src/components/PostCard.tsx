@@ -10,17 +10,37 @@ interface PostCardProps {
   onDelete?: (id: number) => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({
+export default function PostCard({
   post,
   isAdmin = false,
   onDelete,
-}) => {
+}: PostCardProps) {
   const postUrl = `/posts/${post.id}`;
+
+  // --- PADRÃO VISUAL (Idêntico ao UserCard) ---
+  const roleConfig = {
+    TEACHER: {
+      label: "Professor",
+      style: "text-orange-500 bg-orange-50 border-orange-100",
+    },
+    STUDENT: {
+      label: "Aluno",
+      style: "text-blue-500 bg-blue-50 border-blue-100",
+    },
+    ADMIN: {
+      label: "Administrador", // Admin agora é Roxo (Purple), igual na listagem de usuários
+      style: "text-purple-500 bg-purple-50 border-purple-100",
+    },
+  };
+
+  // Verificamos se o cargo existe e pegamos a configuração
+  const userRole = post.autor?.appRole as keyof typeof roleConfig | undefined;
+  const currentRole = userRole ? roleConfig[userRole] : null;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       {/* Lado Esquerdo: Conteúdo do Post */}
-      <div className="flex-1 w-full min-w-0"> {/* min-w-0 é CRUCIAL para o truncate funcionar em flexbox */}
+      <div className="flex-1 w-full min-w-0">
         <Link href={postUrl}>
           <h2 className="text-xl font-bold text-gray-800 hover:text-indigo-600 transition-colors cursor-pointer mb-2">
             {post.titulo}
@@ -28,20 +48,30 @@ const PostCard: React.FC<PostCardProps> = ({
         </Link>
 
         {/* Preview do conteúdo */}
-        {/* line-clamp-2: Limita a 2 linhas */}
-        {/* break-words: Quebra palavras gigantes (AlinhamentoAlinhamento...) */}
         {!isAdmin && (
-          <div className="prose prose-sm text-gray-600 max-w-none line-clamp-2 break-words">
+          <div className="prose prose-sm text-gray-600 max-w-none line-clamp-2 break-words mb-3">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {post.conteudo}
             </ReactMarkdown>
           </div>
         )}
 
-        <div className="flex items-center gap-2 mt-4">
+        {/* --- RODAPÉ DO CARD: Autor + Badge Padronizado --- */}
+        <div className="flex items-center gap-2 mt-2">
+
+          {/* Renderização do Badge usando o roleConfig */}
+          {currentRole && (
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${currentRole.style}`}
+            >
+              {currentRole.label}
+            </span>
+          )}
+
           <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-            Autor: {post.autor?.name || "Desconhecido"}
+            {post.autor?.name || "Desconhecido"}
           </span>
+
         </div>
       </div>
 
@@ -74,6 +104,4 @@ const PostCard: React.FC<PostCardProps> = ({
       </div>
     </div>
   );
-};
-
-export default PostCard;
+}

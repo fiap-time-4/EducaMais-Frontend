@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/services/authClient";
 import { SessionUser } from "@/types";
 import {
-  PrimaryButton,
   SecondaryButton,
   TerciaryButton,
 } from "../buttons/StyledButtons";
@@ -66,15 +65,12 @@ const Nav = styled.nav`
   }
 `;
 
-// --- NOVOS COMPONENTES DE ESTILO ---
-
-// Agrupa as informações do usuário e o botão de sair
 const UserSection = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
   padding-left: 1rem;
-  border-left: 1px solid #e5e7eb; // Uma linha sutil separando a navegação do perfil
+  border-left: 1px solid #e5e7eb;
 
   @media (max-width: 768px) {
     border-left: none;
@@ -85,30 +81,28 @@ const UserSection = styled.div`
 const UserInfo = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center; // Alinha texto à direita
+  align-items: center;
   line-height: 1.2;
   
   @media (max-width: 600px) {
-    display: none; // Esconde em telas muito pequenas para não quebrar
+    display: none;
   }
 `;
 
 const UserName = styled.span`
-  font-size: 0.875rem; // 14px
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
 `;
 
 const UserRoleBadge = styled.span<{ $role?: string }>`
-  font-size: 0.7rem; // 11px
+  font-size: 0.7rem;
   text-transform: uppercase;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 4px;
   margin-top: 2px;
 `;
-
-// -----------------------------------
 
 const Header: React.FC = () => {
   const [mounted, setMounted] = useState(false);
@@ -133,7 +127,6 @@ const Header: React.FC = () => {
     router.push("/");
   };
 
-  // Função auxiliar para traduzir o cargo visualmente
   const getRoleLabel = (role?: string) => {
     switch (role) {
       case 'ADMIN': return 'Administrador';
@@ -177,20 +170,13 @@ const Header: React.FC = () => {
                     >
                       Postagens
                     </TerciaryButton>
-
-                    <PrimaryButton
-                      onClick={() => router.push("/admin/posts/create")}
-                      className="text-base font-medium md:text-[0.9375rem] sm:text-sm"
-                    >
-                      + Criar Conteúdo
-                    </PrimaryButton>
                   </>
                 )}
 
                 {/* Seção do Usuário (Nome + Logout) */}
                 <UserSection>
                   <UserInfo>
-                    <UserName>{user?.name?.split(' ')[0]}</UserName> {/* Mostra só o primeiro nome */}
+                    <UserName>{user?.name?.split(' ')[0]}</UserName>
                     <UserRoleBadge $role={user?.appRole}>
                       {getRoleLabel(user?.appRole)}
                     </UserRoleBadge>

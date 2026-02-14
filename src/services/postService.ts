@@ -64,14 +64,13 @@ const getPostById = async (id: number): Promise<Post> => {
 };
 
 /**
- * Busca a lista paginada de posts.
- * ACEITA AGORA O FILTRO DE AUTOR (authorId)
+ * Busca a lista paginada de posts (PARA ADMIN - VÊ TUDO).
+ * Removemos o filtro de authorId daqui, pois agora existe rota específica.
  */
-const getAllPosts = async (page = 1, limit = 5, authorId?: string): Promise<PaginatedResponse<Post>> => {
+const getAllPosts = async (page = 1, limit = 5): Promise<PaginatedResponse<Post>> => {
   try {
     const response = await apiClient.get<PaginatedResponse<Post>>('/posts', {
-      // O Axios envia automaticamente na URL: ?page=1&limit=10&authorId=...
-      params: { page, limit, authorId }
+      params: { page, limit }
     });
     return response.data;
   } catch (error: unknown) {
@@ -83,13 +82,33 @@ const getAllPosts = async (page = 1, limit = 5, authorId?: string): Promise<Pagi
 };
 
 /**
- * Busca posts por um termo de pesquisa.
- * ACEITA AGORA O FILTRO DE AUTOR (authorId)
+ * NOVO MÉTODO: Busca posts de um autor específico.
+ * Rota Backend: /posts/user/:userId
+ * (PARA TEACHER - VÊ SÓ OS DELE)
  */
-const searchPosts = async (term: string, page = 1, limit = 5, authorId?: string): Promise<PaginatedResponse<Post>> => {
+const getPostsByAuthor = async (userId: string, page = 1, limit = 5): Promise<PaginatedResponse<Post>> => {
+  try {
+    // Atenção: Assumi que a rota base é /posts. 
+    // Se o backend definiu a rota raiz como /user/:id sem o /posts antes, ajuste aqui.
+    const response = await apiClient.get<PaginatedResponse<Post>>(`/posts/user/${userId}`, {
+      params: { page, limit }
+    });
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || 'Erro ao buscar posts do autor');
+    }
+    throw new Error('Ocorreu um erro desconhecido ao buscar posts do autor.');
+  }
+};
+
+/**
+ * Busca posts por um termo de pesquisa.
+ */
+const searchPosts = async (term: string, page = 1, limit = 5): Promise<PaginatedResponse<Post>> => {
   try {
     const response = await apiClient.get<PaginatedResponse<Post>>('/posts/search', {
-      params: { search: term, page, limit, authorId }
+      params: { search: term, page, limit }
     });
     return response.data;
   } catch (error: unknown) {
@@ -107,5 +126,6 @@ export const postService = {
   deletePost,
   getPostById,
   getAllPosts,
+  getPostsByAuthor,
   searchPosts,
 };

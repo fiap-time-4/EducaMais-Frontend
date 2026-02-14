@@ -14,26 +14,32 @@ export default function EditTeacherPage() {
     const params = useParams();
     const id = params.id as string;
 
-    // 1. SEGURANÇA: O Hook assume o controle.
-    // Só ADMIN e TEACHER podem acessar essa página.
     useRequireRole(["ADMIN", "TEACHER"]);
 
-    const [initialData, setInitialData] = useState<{ name: string; email: string } | null>(null);
+    const [initialData, setInitialData] = useState<{ 
+        name: string; 
+        email: string; 
+        appRole: "ADMIN" | "TEACHER" | "STUDENT" 
+    } | null>(null);
+
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Precisamos do isPending apenas para manter o loader rodando enquanto o hook verifica
     const { isPending: isAuthLoading } = authClient.useSession();
 
-    // Busca de Dados do Professor a ser editado
     useEffect(() => {
         const fetchTeacher = async () => {
             try {
                 const userData = await userService.getById(id);
-                setInitialData({ name: userData.name, email: userData.email });
+                
+                setInitialData({ 
+                    name: userData.name, 
+                    email: userData.email,
+                    appRole: userData.appRole
+                });
             } catch (error) {
-                console.error("Erro ao buscar professor:", error);
-                alert("Erro ao buscar dados do professor.");
+                console.error("Erro ao buscar usuário:", error);
+                alert("Erro ao buscar dados.");
                 router.push("/admin/teachers");
             } finally {
                 setIsLoadingData(false);
@@ -43,34 +49,33 @@ export default function EditTeacherPage() {
         if (id) fetchTeacher();
     }, [id, router]);
 
-    // Atualização
     const handleUpdate = async (data: Partial<UpdateUserDTO>) => {
         setIsSubmitting(true);
         try {
-            // Montamos o objeto garantindo que o cargo continue sendo TEACHER
+            const currentRole = initialData?.appRole || "TEACHER";
+
             const updateData: UpdateUserDTO = {
                 name: data.name,
                 email: data.email,
-                password: data.password, // Se vier vazio, o backend ignora
-                appRole: "TEACHER",
+                appRole: currentRole,
                 role: "user"
             };
 
+            if (data.password && data.password.trim() !== "") {
+                updateData.password = data.password;
+            }
+
             await userService.update(id, updateData);
 
-            alert("Professor atualizado com sucesso!");
+            alert("Dados atualizados com sucesso!");
             router.push("/admin/teachers");
         } catch (error: unknown) {
             console.error(error);
-
             let message = "Erro ao atualizar.";
 
-            // JEITO CERTO: Perguntamos pro Axios: "Isso é um erro seu?"
             if (axios.isAxiosError(error)) {
-                // O TypeScript agora SABE que 'error' tem .response e .data
                 message = error.response?.data?.message || message;
             } else if (error instanceof Error) {
-                // Se for um erro genérico do JS (ex: erro de sintaxe)
                 message = error.message;
             }
 
@@ -92,9 +97,12 @@ export default function EditTeacherPage() {
 
     return (
         <div className="max-w-2xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800">Editar Professor</h1>
+            <h1 className="text-2xl font-bold mb-6 text-gray-800">
+                Editar {initialData.appRole === 'ADMIN' ? 'Administrador' : 'Professor'}
+            </h1>
+            
             <UserForm
-                targetRole="TEACHER"
+                targetRole={initialData.appRole} 
                 initialData={initialData}
                 onSubmit={handleUpdate}
                 isSubmitting={isSubmitting}
