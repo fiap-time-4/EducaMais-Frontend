@@ -16,20 +16,28 @@ export default function EditStudentPage() {
 
   useRequireRole(["ADMIN", "TEACHER"]);
 
+  // 2. STATE: Adicionei appRole aqui para manter o padrão (bom para consistência)
   const [initialData, setInitialData] = useState<{
     name: string;
     email: string;
+    appRole?: "ADMIN" | "TEACHER" | "STUDENT"; 
   } | null>(null);
+
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { isPending: isAuthLoading } = authClient.useSession();
 
+  // Busca de Dados
   useEffect(() => {
     const fetchStudent = async () => {
       try {
         const userData = await userService.getById(id);
-        setInitialData({ name: userData.name, email: userData.email });
+        setInitialData({ 
+            name: userData.name, 
+            email: userData.email,
+            appRole: userData.appRole // Mantém o padrão
+        });
       } catch (error) {
         console.error("Erro ao buscar aluno:", error);
         alert("Erro ao buscar dados do aluno.");
@@ -42,16 +50,22 @@ export default function EditStudentPage() {
     if (id) fetchStudent();
   }, [id, router]);
 
+  // Atualização
   const handleUpdate = async (data: Partial<UpdateUserDTO>) => {
     setIsSubmitting(true);
     try {
+      // 3. CORREÇÃO: Não passar password direto na definição do objeto
       const updateData: UpdateUserDTO = {
         name: data.name,
         email: data.email,
-        password: data.password,
-        appRole: "STUDENT",
+        appRole: "STUDENT", // Força Student (correto para esta página)
         role: "user",
       };
+
+      // 4. LÓGICA DE SENHA: Só envia se tiver conteúdo
+      if (data.password && data.password.trim() !== "") {
+        updateData.password = data.password;
+      }
 
       await userService.update(id, updateData);
 

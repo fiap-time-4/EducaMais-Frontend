@@ -21,6 +21,7 @@ export default function CreateStudentPage() {
   const handleCreate = async (data: Partial<CreateUserDTO>) => {
     setIsSubmitting(true);
     try {
+      // 2. FORÇA O CARGO STUDENT: Evita criação de admin por engano
       const studentData: CreateUserDTO = {
         name: data.name || "",
         email: data.email || "",
@@ -30,6 +31,7 @@ export default function CreateStudentPage() {
       };
 
       await userService.create(studentData);
+
       alert("Aluno cadastrado com sucesso!");
       router.push("/admin/students");
     } catch (error: unknown) {
