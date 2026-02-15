@@ -14,8 +14,7 @@ import { useRequireRole } from "@/hooks/useRequireRole";
 const LIMIT = 10;
 
 export default function TeachersListPage() {
-    // 1. SEGURANÇA: O Hook assume o controle.
-    // Redireciona automaticamente se não for ADMIN ou TEACHER
+    // 1. SEGURANÇA: Só Admin e Teacher entram aqui
     useRequireRole(["ADMIN", "TEACHER"]);
 
     const [teachers, setTeachers] = useState<User[]>([]);
@@ -25,30 +24,26 @@ export default function TeachersListPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    // Precisamos saber se o auth terminou apenas para não disparar o fetch antes da hora
     const { isPending: isAuthLoading } = authClient.useSession();
 
     const fetchTeachers = useCallback(async (pageNumber: number) => {
         try {
             setLoading(true);
-            const result = await userService.getAllByRole("TEACHER", pageNumber, LIMIT);
+            const result = await userService.getAllByRole(["ADMIN", "TEACHER"], pageNumber, LIMIT);
 
             setTeachers(result.data);
 
             if (result.pagination) {
                 setTotalPages(result.pagination.pages);
             }
-        } catch (err: unknown) { // <--- Tipagem segura
+        } catch (err: unknown) {
             console.error(err);
-            setError("Erro ao carregar professores.");
+            setError("Erro ao carregar lista.");
         } finally {
             setLoading(false);
         }
     }, []);
 
-    // 2. BUSCA DE DADOS SIMPLIFICADA
-    // Não precisamos mais de ifs complexos aqui dentro.
-    // Se o código chegou aqui e o isAuthLoading é false, o usuário TEM permissão.
     useEffect(() => {
         if (!isAuthLoading) {
             fetchTeachers(page);
@@ -70,18 +65,17 @@ export default function TeachersListPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Tem certeza que deseja remover este professor?")) return;
+        if (!confirm("Tem certeza que deseja remover este usuário?")) return;
         try {
             await userService.delete(id);
             setTeachers((prev) => prev.filter((t) => t.id !== id));
-            alert("Professor removido com sucesso!");
+            alert("Removido com sucesso!");
         } catch (err: unknown) {
             console.error(err);
-            alert("Erro ao excluir professor.");
+            alert("Erro ao excluir.");
         }
     };
 
-    // Mostra loading enquanto autentica OU carrega dados
     if (isAuthLoading || loading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -90,18 +84,22 @@ export default function TeachersListPage() {
         );
     }
 
+    const filteredStaff = teachers.filter(
+        (user) => user.appRole === "ADMIN" || user.appRole === "TEACHER"
+    );
+
     return (
         <div className="max-w-4xl mx-auto p-6">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Professores</h1>
-                    <p className="text-gray-600 mt-1">Gerencie o corpo docente da escola.</p>
+                    <h1 className="text-3xl font-bold text-gray-800">Corpo Docente</h1>
+                    <p className="text-gray-600 mt-1">Gerencie professores e administradores.</p>
                 </div>
 
                 <Link href="/admin/teachers/create">
                     <PrimaryButton>
                         <Plus size={18} />
-                        <span className="hidden sm:inline">Novo Professor</span>
+                        <span className="hidden sm:inline">Novo Cadastro</span>
                     </PrimaryButton>
                 </Link>
             </div>
@@ -112,14 +110,14 @@ export default function TeachersListPage() {
                 </div>
             )}
 
-            {!error && teachers.length === 0 ? (
+            {!error && filteredStaff.length === 0 ? (
                 <div className="text-center p-10 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-gray-500">Nenhum professor cadastrado ainda.</p>
+                    <p className="text-gray-500">Nenhum membro da equipe encontrado.</p>
                 </div>
             ) : (
                 <>
                     <div className="grid gap-4">
-                        {teachers.map((teacher) => (
+                        {filteredStaff.map((teacher) => (
                             <UserCard
                                 key={teacher.id}
                                 user={teacher}

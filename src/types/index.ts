@@ -13,7 +13,6 @@ export interface Pagination {
 
 /**
  * Tipo Genérico de Resposta da API.
- * O <T> significa que podemos passar qualquer coisa: Post, User, etc.
  */
 export interface PaginatedResponse<T> {
   success: boolean;
@@ -46,25 +45,25 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: string; // Ajustei para string pois costuma vir "user" do backend, mas pode ser UserRole se for estrito
   createdAt: string;
-  appRole: "ADMIN" | "TEACHER" | "STUDENT";
+  appRole: UserRole;
 }
 
 export interface CreateUserDTO {
   name: string;
   email: string;
   password: string;
-  role?: string;     // Role técnico (ex: "user" ou "admin")
-  appRole: UserRole; // Role de negócio (TEACHER ou STUDENT)
+  role?: string;     
+  appRole: UserRole; 
 }
 
 export interface UpdateUserDTO {
   name?: string;
   email?: string;
-  password?: string; // <--- ADICIONADO (Resolve o erro 'password does not exist')
-  role?: string;     // <--- ALTERADO para string (Resolve o erro de atribuição "user")
-  appRole?: UserRole;// <--- ADICIONADO para permitir mudar o cargo
+  password?: string;
+  role?: string;     
+  appRole?: UserRole;
 }
 
 // ==========================================
@@ -72,16 +71,17 @@ export interface UpdateUserDTO {
 // ==========================================
 
 export interface Author {
-  id: number;
+  id: string;         // CORREÇÃO: ID de usuário é string (uuid/cuid), não number
   email: string;
   name: string | null;
+  appRole?: UserRole; // <--- AQUI ESTÁ A CORREÇÃO PRINCIPAL
 }
 
 export interface Post {
-  id: number;
+  id: number;         // ID do Post é Int (autoincrement)
   titulo: string;
   conteudo: string;
-  autorId: number;
+  autorId: string;    // CORREÇÃO: Tem que bater com o tipo do Author.id
   createdAt: string;
   atualizacao: string;
   autor: Author;
